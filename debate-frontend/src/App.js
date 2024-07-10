@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import DebateForm from './components/DebateForm';
-import DebateHistory from './components/DebateHistory';
-import DebateInput from './components/DebateInput';
+import StartPage from './components/StartPage';
+import OpinionPage from './components/OpinionPage';
+import LikertScalePage from './components/LikertScalePage';
+import DebateFormPage from './components/DebateFormPage';
 
 const App = () => {
     const [debate, setDebate] = useState(null);
+    const [opinion, setOpinion] = useState('');
     const [history, setHistory] = useState([]);
 
     const updateDebate = (data) => {
@@ -12,20 +14,27 @@ const App = () => {
         setDebate({ ...debate, state: data.state });
     };
 
+    const resetDebate = () => {
+        setDebate(null);
+        setOpinion('');
+        setHistory([]);
+    };
+
     return (
         <div>
             <h1>Debate Platform</h1>
             {!debate ? (
-                <DebateForm setDebate={setDebate} />
+                <StartPage setDebate={setDebate} />
+            ) : !opinion ? (
+                <OpinionPage debate={debate} setOpinion={setOpinion} />
+            ) : debate.user_side ? (
+                <DebateFormPage debate={debate} history={history} updateDebate={updateDebate} resetDebate={resetDebate} />
             ) : (
-                <div>
-                    <h2>Topic: {debate.topic}</h2>
-                    <DebateHistory history={history} />
-                    {debate.state !== 'finished' && <DebateInput debateId={debate.debate_id} updateDebate={updateDebate} />}
-                </div>
+                <LikertScalePage debate={debate} opinion={opinion} setDebate={setDebate} />
             )}
         </div>
     );
 };
 
 export default App;
+
