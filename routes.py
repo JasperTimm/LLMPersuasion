@@ -4,22 +4,14 @@ import random
 from database import db
 from models import Debate
 from llm_handler import get_llm_response
-
-topics = ["Is artificial intelligence beneficial to society?"]
+from claims import original_claims
 
 def init_routes(app):
-    @app.route('/create_debate', methods=['POST'])
-    def create_debate():
-        data = request.json
-        user_side = data.get('user_side')
-        if not user_side or user_side not in ['FOR', 'AGAINST']:
-            return jsonify({'error': 'user_side must be either FOR or AGAINST'}), 400
-        
-        ai_side = 'AGAINST' if user_side == 'FOR' else 'FOR'
-        
+    @app.route('/start_debate', methods=['POST'])
+    def start_debate():
         debate_id = str(uuid.uuid4())
-        topic = random.choice(topics)
-        new_debate = Debate(id=debate_id, topic=topic, user_side=user_side, ai_side=ai_side)
+        topic = random.choice(original_claims)
+        new_debate = Debate(id=debate_id, topic=topic, user_side='', ai_side='')
         db.session.add(new_debate)
         db.session.commit()
         
@@ -27,7 +19,40 @@ def init_routes(app):
             'debate_id': debate_id,
             'topic': topic
         }
-        print(f"Created debate with ID: {debate_id} and topic: {topic}")
+        print(f"Started debate with ID: {debate_id} and topic: {topic}")
+        return jsonify(response)
+
+    @app.route('/update_position', methods=['POST'])
+    def update_position():
+        data = request.json
+        debate_id = data.get('debate_id')
+        user_initial_opinion = data.get('user_initial_opinion')
+        likert_score = data.get('likert_score')
+
+        debate = Debate.query.get(debate_id)
+        if not debate:
+            return jsonify({'error': 'Invalid debate ID'}), 400
+
+        if likert_score in [1, 2, 3]:
+            user_side = 'AGAINST'
+        elif likert_score in [5, 6, 7]:
+            user_side = 'FOR'
+        else:
+            user_side = random.choice(['FOR', 'AGAINST'])
+
+        ai_side = 'AGAINST' if user_side == 'FOR' else 'FOR'
+        debate.user_side = user_side
+        debate.ai_side = ai_side
+        debate.user_initial_opinion = user_initial_opinion
+        debate.user_likert_score = likert_score
+
+        db.session.commit()
+        
+        response = {
+            'debate_id': debate_id,
+            'user_side': user_side,
+            'ai_side': ai_side
+        }
         return jsonify(response)
 
     @app.route('/update_debate', methods=['POST'])
@@ -44,17 +69,32 @@ def init_routes(app):
         print(f"Updating debate with ID: {debate_id}")
         print(f"User message: {user_message}")
         
-        user_responses = debate.user_responses_list
-        user_responses.append(user_message)
-        debate.user_responses_list = user_responses
-        print(f"Updated user responses: {debate.user_responses_list}")
-        
         # Call OpenAI API to get LLM response
-        llm_response = get_llm_response(user_message, debate.topic, debate.state, debate.user_side, debate.ai_side)
-        llm_responses = debate.llm_responses_list
-        llm_responses.append(llm_response)
-        debate.llm_responses_list = llm_responses
-        print(f"Updated LLM responses: {debate.llm_responses_list}")
+        llm_response = get_llm_response(
+            user_message,
+            debate.state,
+            debate.topic, 
+            debate.user_side, 
+            debate.ai_side, 
+            debate.user_responses_dict, 
+            debate.llm_responses_dict
+        )
+
+        # Update LLM responses
+        llm_responses = debate.llm_responses_dict
+        if debate.state not in llm_responses:
+            llm_responses[debate.state] = []
+        llm_responses[debate.state].append(llm_response)
+        debate.llm_responses_dict = llm_responses
+        print(f"Updated LLM responses: {debate.llm_responses_dict}")
+
+        # Update user responses
+        user_responses = debate.user_responses_dict
+        if debate.state not in user_responses:
+            user_responses[debate.state] = []
+        user_responses[debate.state].append(user_message)
+        debate.user_responses_dict = user_responses
+        print(f"Updated user responses: {debate.user_responses_dict}")
         
         # Update debate state (simple state machine for demo purposes)
         if debate.state == 'intro':
@@ -65,12 +105,10 @@ def init_routes(app):
             debate.state = 'finished'
         
         db.session.commit()
-        print(f"Debate state after update: {debate.state}")
-        
-        response = {
-            'debate_id': debate_id,
-            'state': debate.state,
-            'user_message': user_message,
-            'llm_response': llm_response
-        }
-        return jsonify(response)
+
+        return jsonify({
+            "message": "Responses added successfully",
+            "state": debate.state,
+            "user_message": user_message,
+            "llm_response": llm_response
+        })

@@ -1,0 +1,26 @@
+.likert-labels {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 10px;
+}
+
+.likert-label {
+	width: 14.28%; /* 100% / 7 labels */
+	text-align: center;
+	cursor: pointer; /* Add cursor pointer to indicate clickable labels */
+}
+
+.likert-label.selected {
+	font-weight: bold;
+}
+
+.range-container {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	margin-bottom: 10px;
+}
+
+.range-container input[type="range"] {
+	width: 100%;
+}

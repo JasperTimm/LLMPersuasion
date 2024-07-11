@@ -14,8 +14,8 @@ const App = () => {
         setDebate({ ...debate, state: data.state });
     };
 
-    const resetDebate = () => {
-        setDebate(null);
+    const resetDebate = (newDebate) => {
+        setDebate(newDebate);
         setOpinion('');
         setHistory([]);
     };
