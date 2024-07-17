@@ -1,10 +1,10 @@
 import React from 'react';
-import axios from 'axios';
+import { axiosInstance } from '../config';
 
 const StartPage = ({ setDebate }) => {
     const startDebate = async () => {
         try {
-            const response = await axios.post('http://127.0.0.1:5000/start_debate');
+            const response = await axiosInstance.post(`/start_debate`);
             setDebate(response.data);
         } catch (error) {
             console.error("Error starting debate:", error);

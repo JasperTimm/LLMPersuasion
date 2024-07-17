@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
-import StartPage from './components/StartPage';
-import OpinionPage from './components/OpinionPage';
-import LikertScalePage from './components/LikertScalePage';
-import DebateFormPage from './components/DebateFormPage';
+import React, { useState, useEffect } from 'react';
+import HomePage from './components/HomePage';
+import Login from './components/Login';
+import { axiosInstance } from './config';
 
 const App = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [debate, setDebate] = useState(null);
     const [opinion, setOpinion] = useState('');
     const [history, setHistory] = useState([]);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                await axiosInstance.get(`/protected`);
+                setIsAuthenticated(true);
+            } catch (error) {
+                setIsAuthenticated(false);
+            }
+        };
+        checkAuth();
+    }, []);
 
     const updateDebate = (data) => {
         setHistory([...history, { role: 'User', message: data.user_message }, { role: 'AI', message: data.llm_response }]);
@@ -20,21 +32,22 @@ const App = () => {
         setHistory([]);
     };
 
+    if (!isAuthenticated) {
+        return <Login />;
+    }
+
     return (
-        <div>
-            <h1>Debate Platform</h1>
-            {!debate ? (
-                <StartPage setDebate={setDebate} />
-            ) : !opinion ? (
-                <OpinionPage debate={debate} setOpinion={setOpinion} />
-            ) : debate.user_side ? (
-                <DebateFormPage debate={debate} history={history} updateDebate={updateDebate} resetDebate={resetDebate} />
-            ) : (
-                <LikertScalePage debate={debate} opinion={opinion} setDebate={setDebate} />
-            )}
-        </div>
+        <HomePage
+            debate={debate}
+            setDebate={setDebate}
+            opinion={opinion}
+            setOpinion={setOpinion}
+            history={history}
+            setHistory={setHistory}
+            updateDebate={updateDebate}
+            resetDebate={resetDebate}
+        />
     );
 };
 
 export default App;
-

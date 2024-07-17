@@ -91,12 +91,32 @@ npm start
 4. Open a web browser and navigate to the following URL:
 
 ```bash
-http://localhost:3000/
+https://localhost:3000/
 ```
 
 You should now see the debate interface in your web browser. Start a new debate by clicking the "Start Debate" button.
 
-## Making Changes
+## .env files
+
+The code uses environment variables to store sensitive information such as API keys. These environment variables are stored in `.env` files in the project directory. The `.env` files are not included in the repository for security reasons. You will need to create your own `.env` files with the required environment variables. There is an `.env` file in both the project directory and the frontend directory.
+
+There are template files in the project directory and the frontend directory that you can use to create your own `.env` files. The template files are named `.env.template` and contain the required environment variables. The frontend's `.env.template` file is fine to copy as is (for now), but the project's `.env.template` file will need to be updated with your OpenAI API key and a Flask secret key (can be any random string).
+
+## Accepting self signed certificates in the browser
+
+The site uses a self signed certificate for HTTPS when running locally. This means that the browser will not trust the certificate by default and will show a warning message. To accept the certificate and view the site, you will need to click on the "Advanced" button and then click on the "Proceed to localhost (unsafe)" link.
+
+IMPORTANT: This must be done for BOTH the frontend (https://localhost:3000) and the backend (https://localhost:5000) in order for the site to work correctly.
+
+## Adding users
+
+To add a new user to the site, you can use the following command:
+
+```bash
+python add_user.py <username> <password>
+```
+
+## Making Changes to models
 
 If you change the models used in models.py, you will usually need to delete the existing DB and create a new one. To do this, you can run the following commands:
 
