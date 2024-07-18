@@ -2,12 +2,11 @@ from flask import request, jsonify, redirect, url_for
 import uuid
 import random
 from database import db
-from models import Debate
+from models import User, Debate, Topic
 from llm_handler import get_llm_response
-from claims import original_claims
+from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User
 
 def init_routes(app):
     @app.route('/login', methods=['POST'])
@@ -36,16 +35,39 @@ def init_routes(app):
     @login_required
     def start_debate():
         debate_id = str(uuid.uuid4())
-        topic = random.choice(original_claims)
-        new_debate = Debate(id=debate_id, topic=topic, user_side='', ai_side='')
+
+        # Get all topic IDs the user has already seen
+        seen_topic_ids = db.session.query(Debate.topic_id).filter_by(user_id=current_user.id).all()
+        seen_topic_ids = [topic_id for (topic_id,) in seen_topic_ids]
+
+        # Get all topic IDs that the user has not seen
+        available_topics = Topic.query.filter(~Topic.id.in_(seen_topic_ids)).all()
+
+        if not available_topics:
+            return jsonify({"error": "No new topics available"}), 400
+
+        # Randomly choose a topic from the available topics
+        chosen_topic = random.choice(available_topics)
+
+        user = User.query.get(current_user.id)
+        user.total_debates += 1
+
+        new_debate = Debate(
+            id=debate_id,
+            topic_id=chosen_topic.id,
+            user_side='',
+            ai_side='',
+            user_id=current_user.id,
+            debate_count=user.total_debates
+        )
         db.session.add(new_debate)
         db.session.commit()
-        
+
         response = {
             'debate_id': debate_id,
-            'topic': topic
+            'topic': chosen_topic.description
         }
-        print(f"Started debate with ID: {debate_id} and topic: {topic}")
+        print(f"Started debate with ID: {debate_id}, topic: {chosen_topic.description}, and user ID: {current_user.id}")
         return jsonify(response)
 
     @app.route('/initial_position', methods=['POST'])
@@ -97,14 +119,17 @@ def init_routes(app):
         print(f"Updating debate with ID: {debate_id}")
         print(f"User message: {user_message}")
         
-        # Call OpenAI API to get LLM response
+        topic = Topic.query.get(debate.topic_id)
+        if not topic:
+            return jsonify({"error": "Topic not found"}), 404
+
         llm_response = get_llm_response(
             user_message,
             debate.state,
-            debate.topic, 
-            debate.user_side, 
-            debate.ai_side, 
-            debate.user_responses_dict, 
+            topic.description,
+            debate.user_side,
+            debate.ai_side,
+            debate.user_responses_dict,
             debate.llm_responses_dict
         )
 

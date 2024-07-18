@@ -6,10 +6,14 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    total_debates = db.Column(db.Integer, nullable=False, default=0)
+
+class Topic(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String, nullable=False)
 
 class Debate(db.Model):
     id = db.Column(db.String, primary_key=True)
-    topic = db.Column(db.String, nullable=False)
     state = db.Column(db.String, nullable=False, default='intro')
     user_side = db.Column(db.String, nullable=False, default='')
     ai_side = db.Column(db.String, nullable=False, default='')
@@ -19,6 +23,9 @@ class Debate(db.Model):
     llm_responses = db.Column(db.Text, nullable=False, default='{}')
     final_opinion = db.Column(db.Text, nullable=True)
     final_likert_score = db.Column(db.Integer, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    debate_count = db.Column(db.Integer, nullable=False)
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
 
     @property
     def user_responses_dict(self):

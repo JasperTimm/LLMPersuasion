@@ -122,8 +122,8 @@ If you change the models used in models.py, you will usually need to delete the 
 
 ```bash
 rm instance/debate_website.sqlite
-python database.py
+python seed.py
 ```
 
-This will delete the existing database and create a new one with the updated models.
+This will delete the existing database and create a new one with the updated models. It will also seed the database with some initial data (e.g., topics, users, etc.).
 
