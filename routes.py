@@ -48,21 +48,21 @@ def init_routes(app):
         print(f"Started debate with ID: {debate_id} and topic: {topic}")
         return jsonify(response)
 
-    @app.route('/update_position', methods=['POST'])
+    @app.route('/initial_position', methods=['POST'])
     @login_required
-    def update_position():
+    def initial_position():
         data = request.json
         debate_id = data.get('debate_id')
-        user_initial_opinion = data.get('user_initial_opinion')
-        likert_score = data.get('likert_score')
+        initial_opinion = data.get('initial_opinion')
+        initial_likert_score = data.get('initial_likert_score')
 
         debate = Debate.query.get(debate_id)
         if not debate:
             return jsonify({'error': 'Invalid debate ID'}), 400
 
-        if likert_score in [1, 2, 3]:
+        if initial_likert_score in [1, 2, 3]:
             user_side = 'AGAINST'
-        elif likert_score in [5, 6, 7]:
+        elif initial_likert_score in [5, 6, 7]:
             user_side = 'FOR'
         else:
             user_side = random.choice(['FOR', 'AGAINST'])
@@ -70,8 +70,8 @@ def init_routes(app):
         ai_side = 'AGAINST' if user_side == 'FOR' else 'FOR'
         debate.user_side = user_side
         debate.ai_side = ai_side
-        debate.user_initial_opinion = user_initial_opinion
-        debate.user_likert_score = likert_score
+        debate.initial_opinion = initial_opinion
+        debate.initial_likert_score = initial_likert_score
 
         db.session.commit()
         
@@ -140,3 +140,27 @@ def init_routes(app):
             "user_message": user_message,
             "llm_response": llm_response
         })
+    
+    @app.route('/final_position', methods=['POST'])
+    @login_required
+    def final_position():
+        data = request.json
+        debate_id = data.get('debate_id')
+        final_opinion = data.get('final_opinion')
+        final_likert_score = data.get('final_likert_score')
+
+        debate = Debate.query.get(debate_id)
+        if not debate:
+            return jsonify({'error': 'Invalid debate ID'}), 400
+
+        debate.final_opinion = final_opinion
+        debate.final_likert_score = final_likert_score
+
+        db.session.commit()
+
+        response = {
+            'debate_id': debate_id,
+            'final_opinion': final_opinion,
+            'final_likert_score': final_likert_score
+        }
+        return jsonify(response)    
