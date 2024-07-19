@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles/LikertScalePage.css';
 import { axiosInstance } from '../config';
 
-const LikertScalePage = ({ debate, setDebate }) => {
+const FinalLikertScalePage = ({ debate, resetDebate }) => {
     const [likertScore, setLikertScore] = useState(4);
 
     const likertLabels = [
@@ -17,16 +17,15 @@ const LikertScalePage = ({ debate, setDebate }) => {
 
     const submitLikert = async () => {
         try {
-            const response = await axiosInstance.post(`/initial_position`, {
+            // We actually don't need the response here as 
+            // we're just resetting the debate
+            const response = await axiosInstance.post(`/final_position`, {
                 debate_id: debate.debate_id,
-                initial_opinion: debate.initial_opinion,
-                initial_likert_score: likertScore,
+                final_opinion: debate.final_opinion,
+                final_likert_score: likertScore,
             });
-            setDebate({
-                ...debate,
-                ...response.data,
-                initial_likert_score: likertScore,
-            });
+
+            resetDebate();
         } catch (error) {
             console.error("Error updating position:", error);
         }
@@ -61,4 +60,4 @@ const LikertScalePage = ({ debate, setDebate }) => {
     );
 };
 
-export default LikertScalePage;
+export default FinalLikertScalePage;

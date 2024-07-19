@@ -13,10 +13,12 @@ class Debate(db.Model):
     state = db.Column(db.String, nullable=False, default='intro')
     user_side = db.Column(db.String, nullable=False, default='')
     ai_side = db.Column(db.String, nullable=False, default='')
-    user_initial_opinion = db.Column(db.Text, nullable=True)
-    user_likert_score = db.Column(db.Integer, nullable=True)
+    initial_opinion = db.Column(db.Text, nullable=True)
+    initial_likert_score = db.Column(db.Integer, nullable=True)
     user_responses = db.Column(db.Text, nullable=False, default='{}')
     llm_responses = db.Column(db.Text, nullable=False, default='{}')
+    final_opinion = db.Column(db.Text, nullable=True)
+    final_likert_score = db.Column(db.Integer, nullable=True)
 
     @property
     def user_responses_dict(self):

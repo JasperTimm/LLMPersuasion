@@ -6,7 +6,6 @@ import { axiosInstance } from './config';
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [debate, setDebate] = useState(null);
-    const [opinion, setOpinion] = useState('');
     const [history, setHistory] = useState([]);
 
     useEffect(() => {
@@ -26,9 +25,8 @@ const App = () => {
         setDebate({ ...debate, state: data.state });
     };
 
-    const resetDebate = (newDebate) => {
-        setDebate(newDebate);
-        setOpinion('');
+    const resetDebate = () => {
+        setDebate(null);
         setHistory([]);
     };
 
@@ -40,10 +38,7 @@ const App = () => {
         <HomePage
             debate={debate}
             setDebate={setDebate}
-            opinion={opinion}
-            setOpinion={setOpinion}
             history={history}
-            setHistory={setHistory}
             updateDebate={updateDebate}
             resetDebate={resetDebate}
         />
