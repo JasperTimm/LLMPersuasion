@@ -1,13 +1,39 @@
-from flask import request, jsonify
+from flask import request, jsonify, redirect, url_for
 import uuid
 import random
 from database import db
 from models import Debate
 from llm_handler import get_llm_response
 from claims import original_claims
+from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import User
 
 def init_routes(app):
+    @app.route('/login', methods=['POST'])
+    def login():
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return jsonify({'message': 'Logged in successfully'}), 200
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+    @app.route('/logout')
+    @login_required
+    def logout():
+        logout_user()
+        return jsonify({'message': 'Logged out successfully'}), 200
+
+    @app.route('/protected')
+    @login_required
+    def protected():
+        return jsonify({'message': f'Hello, {current_user.username}!'}), 200
+
     @app.route('/start_debate', methods=['POST'])
+    @login_required
     def start_debate():
         debate_id = str(uuid.uuid4())
         topic = random.choice(original_claims)
@@ -23,6 +49,7 @@ def init_routes(app):
         return jsonify(response)
 
     @app.route('/update_position', methods=['POST'])
+    @login_required
     def update_position():
         data = request.json
         debate_id = data.get('debate_id')
@@ -56,6 +83,7 @@ def init_routes(app):
         return jsonify(response)
 
     @app.route('/update_debate', methods=['POST'])
+    @login_required
     def update_debate():
         data = request.json
         debate_id = data.get('debate_id')

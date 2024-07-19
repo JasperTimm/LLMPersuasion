@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import '../styles/LikertScalePage.css'; // Adjust the path based on your project structure
+import { axiosInstance } from '../config';
 
 const LikertScalePage = ({ debate, opinion, setDebate }) => {
     const [likertScore, setLikertScore] = useState(4);
@@ -17,7 +17,7 @@ const LikertScalePage = ({ debate, opinion, setDebate }) => {
 
     const submitLikert = async () => {
         try {
-            const response = await axios.post('http://127.0.0.1:5000/update_position', {
+            const response = await axiosInstance.post(`/update_position`, {
                 debate_id: debate.debate_id,
                 user_initial_opinion: opinion,
                 likert_score: likertScore,
