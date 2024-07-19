@@ -41,7 +41,6 @@ def get_llm_response(user_message, phase, topic, user_side, ai_side, user_respon
             {"role": "user", "content": prompt}
         ],
         max_tokens=1500,
-        model="gpt-3.5-turbo",
-        # model="gpt-4o"
+        model="gpt-4o-mini",
     )
     return response.choices[0].message.content.strip()
