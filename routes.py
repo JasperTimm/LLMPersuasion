@@ -127,6 +127,8 @@ def init_routes(app):
             user_message,
             debate.state,
             topic.description,
+            debate.initial_opinion, 
+            debate.initial_likert_scale,            
             debate.user_side,
             debate.ai_side,
             debate.user_responses_dict,
