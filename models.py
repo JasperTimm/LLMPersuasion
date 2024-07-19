@@ -26,6 +26,8 @@ class Debate(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     debate_count = db.Column(db.Integer, nullable=False)
     topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
+    llm_model_type = db.Column(db.String, nullable=False, default='')
+    llm_debate_type = db.Column(db.String, nullable=False, default='')
 
     @property
     def user_responses_dict(self):
