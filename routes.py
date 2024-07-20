@@ -35,6 +35,8 @@ def init_routes(app):
     @login_required
     def start_debate():
         debate_id = str(uuid.uuid4())
+        llm_model_type = request.json.get('llm_model_type', 'openai_gpt-4o-mini')
+        llm_debate_type = request.json.get('llm_debate_type', 'simple')
 
         # Get all topic IDs the user has already seen
         seen_topic_ids = db.session.query(Debate.topic_id).filter_by(user_id=current_user.id).all()
@@ -58,7 +60,9 @@ def init_routes(app):
             user_side='',
             ai_side='',
             user_id=current_user.id,
-            debate_count=user.total_debates
+            debate_count=user.total_debates,
+            llm_model_type=llm_model_type,
+            llm_debate_type=llm_debate_type
         )
         db.session.add(new_debate)
         db.session.commit()
@@ -127,10 +131,14 @@ def init_routes(app):
             user_message,
             debate.state,
             topic.description,
+            debate.initial_opinion, 
+            debate.initial_likert_score,            
             debate.user_side,
             debate.ai_side,
             debate.user_responses_dict,
-            debate.llm_responses_dict
+            debate.llm_responses_dict,
+            debate.llm_model_type,
+            debate.llm_debate_type
         )
 
         # Update LLM responses
