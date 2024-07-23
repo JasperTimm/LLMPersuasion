@@ -17,9 +17,7 @@ const FinalLikertScalePage = ({ debate, resetDebate }) => {
 
     const submitLikert = async () => {
         try {
-            // We actually don't need the response here as 
-            // we're just resetting the debate
-            const response = await axiosInstance.post(`/final_position`, {
+            await axiosInstance.post(`/final_position`, {
                 debate_id: debate.debate_id,
                 final_opinion: debate.final_opinion,
                 final_likert_score: likertScore,
