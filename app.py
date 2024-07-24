@@ -40,4 +40,9 @@ with app.app_context():
 init_routes(app)
 
 if __name__ == '__main__':
-    app.run(debug=True, ssl_context=('cert.pem', 'key.pem'))
+    env = os.environ.get('FLASK_ENV', 'development')
+    if env == 'production':
+        # In prod we have SSL termination from the web server
+        app.run(debug=False)
+    else:
+        app.run(debug=True, ssl_context=('cert.pem', 'key.pem'))

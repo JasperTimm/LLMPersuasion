@@ -2,6 +2,7 @@ from models import Topic, User
 from database import db, init_db
 from topics import original_topics
 from flask import Flask
+from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///debate_website.sqlite'
@@ -16,7 +17,8 @@ def populate_topics():
 
 def add_users():
     # Add test user here for now
-    user = User(username='guest', password='password')
+    hashed_password = generate_password_hash('password', method='pbkdf2:sha256')
+    user = User(username='guest', password=hashed_password)
     db.session.add(user)
     db.session.commit()
 

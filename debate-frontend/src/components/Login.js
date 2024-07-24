@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { axiosInstance } from '../config';
 
-const Login = () => {
+const Login = ({ setIsAuthenticated }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
@@ -10,6 +10,7 @@ const Login = () => {
         try {
             const response = await axiosInstance.post(`/login`, { username, password });
             alert(response.data.message);
+            setIsAuthenticated(true);
         } catch (error) {
             alert('Login failed');
         }

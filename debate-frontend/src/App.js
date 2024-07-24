@@ -31,7 +31,7 @@ const App = () => {
     };
 
     if (!isAuthenticated) {
-        return <Login />;
+        return <Login setIsAuthenticated={setIsAuthenticated} />;
     }
 
     return (
