@@ -41,8 +41,9 @@ init_routes(app)
 
 if __name__ == '__main__':
     env = os.environ.get('FLASK_ENV', 'development')
+    port = int(os.environ.get('FLASK_RUN_PORT', 5000))
     if env == 'production':
         # In prod we have SSL termination from the web server
-        app.run(debug=False)
+        app.run(debug=False, port=port)
     else:
-        app.run(debug=True, ssl_context=('cert.pem', 'key.pem'))
+        app.run(debug=True, port=port, ssl_context=('cert.pem', 'key.pem'))
