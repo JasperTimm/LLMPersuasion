@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: cd debate-frontend && npm install
 
+      - name: Add backend path to .env
+        run: echo "REACT_APP_BACKEND_URL='/api'" > debate-frontend/.env
+
       - name: Build frontend
         run: cd debate-frontend && npm run build
 
