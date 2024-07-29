@@ -30,6 +30,38 @@ def init_routes(app):
     @login_required
     def protected():
         return jsonify({'message': f'Hello, {current_user.username}!'}), 200
+    
+    @app.route('/check_user_info', methods=['GET'])
+    @login_required
+    def check_user_info():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        userInfoCompleted = all([user.age, user.gender, user.profession, user.introvert_extrovert])
+        return jsonify({'userInfoCompleted': userInfoCompleted}), 200
+    
+    @app.route('/user_info', methods=['POST'])
+    @login_required
+    def user_info():
+        data = request.json
+        age = data.get('age')
+        gender = data.get('gender')
+        profession = data.get('profession')
+        introvert_extrovert = data.get('introvert_extrovert')
+
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        user.age = age
+        user.gender = gender
+        user.profession = profession
+        user.introvert_extrovert = introvert_extrovert
+
+        db.session.commit()
+
+        return jsonify({'message': 'User info updated successfully'}), 200
 
     @app.route('/start_debate', methods=['POST'])
     @login_required

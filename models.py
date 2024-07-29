@@ -6,6 +6,10 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    age = db.Column(db.Integer, nullable=True)
+    gender = db.Column(db.String(50), nullable=True)
+    profession = db.Column(db.String(150), nullable=True)
+    introvert_extrovert = db.Column(db.String(50), nullable=True)
     total_debates = db.Column(db.Integer, nullable=False, default=0)
 
 class Topic(db.Model):
