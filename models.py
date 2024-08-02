@@ -11,6 +11,17 @@ class User(UserMixin, db.Model):
     profession = db.Column(db.String(150), nullable=True)
     introvert_extrovert = db.Column(db.String(50), nullable=True)
     total_debates = db.Column(db.Integer, nullable=False, default=0)
+    user_number = db.Column(db.Integer, nullable=True)
+    extraverted_enthusiastic = db.Column(db.Integer)
+    critical_quarrelsome = db.Column(db.Integer)
+    dependable_self_disciplined = db.Column(db.Integer)
+    anxious_easily_upset = db.Column(db.Integer)
+    open_to_experiences_complex = db.Column(db.Integer)
+    reserved_quiet = db.Column(db.Integer)
+    sympathetic_warm = db.Column(db.Integer)
+    disorganized_careless = db.Column(db.Integer)
+    calm_emotionally_stable = db.Column(db.Integer)
+    conventional_uncreative = db.Column(db.Integer)
 
 class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,3 +59,4 @@ class Debate(db.Model):
     @llm_responses_dict.setter
     def llm_responses_dict(self, value):
         self.llm_responses = json.dumps(value)
+

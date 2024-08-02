@@ -31,15 +31,39 @@ def init_routes(app):
     def protected():
         return jsonify({'message': f'Hello, {current_user.username}!'}), 200
     
+    # @app.route('/check_user_info', methods=['GET'])
+    # @login_required
+    # def check_user_info():
+    #     user = User.query.get(current_user.id)
+    #     if not user:
+    #         return jsonify({'error': 'User not found'}), 404
+
+    #     userInfoCompleted = all([user.age, user.gender, user.profession, user.introvert_extrovert])
+    #     return jsonify({'userInfoCompleted': userInfoCompleted}), 200
+
     @app.route('/check_user_info', methods=['GET'])
     @login_required
     def check_user_info():
         user = User.query.get(current_user.id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
-
-        userInfoCompleted = all([user.age, user.gender, user.profession, user.introvert_extrovert])
-        return jsonify({'userInfoCompleted': userInfoCompleted}), 200
+        
+        user_info_completed = all([
+            user.age is not None,
+            user.gender is not None,
+            user.profession is not None,
+            user.introvert_extrovert is not None,
+            user.extraverted_enthusiastic is not None,
+            user.critical_quarrelsome is not None,
+            user.dependable_self_disciplined is not None,
+            user.anxious_easily_upset is not None,
+            user.open_to_experiences_complex is not None,
+            user.reserved_quiet is not None,
+            user.sympathetic_warm is not None,
+            user.disorganized_careless is not None,
+            user.calm_emotionally_stable is not None,
+            user.conventional_uncreative is not None
+        ])
     
     @app.route('/user_info', methods=['POST'])
     @login_required
@@ -49,6 +73,16 @@ def init_routes(app):
         gender = data.get('gender')
         profession = data.get('profession')
         introvert_extrovert = data.get('introvert_extrovert')
+        user.extraverted_enthusiastic = data.get('personality_traits')[0]
+        user.critical_quarrelsome = data.get('personality_traits')[1]
+        user.dependable_self_disciplined = data.get('personality_traits')[2]
+        user.anxious_easily_upset = data.get('personality_traits')[3]
+        user.open_to_experiences_complex = data.get('personality_traits')[4]
+        user.reserved_quiet = data.get('personality_traits')[5]
+        user.sympathetic_warm = data.get('personality_traits')[6]
+        user.disorganized_careless = data.get('personality_traits')[7]
+        user.calm_emotionally_stable = data.get('personality_traits')[8]
+        user.conventional_uncreative = data.get('personality_traits')[9]
 
         user = User.query.get(current_user.id)
         if not user:
