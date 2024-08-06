@@ -104,7 +104,8 @@ def init_routes(app):
         response = {
             'debate_id': debate_id,
             'user_side': user_side,
-            'ai_side': ai_side
+            'ai_side': ai_side,
+            'state': debate.state
         }
         return jsonify(response)
 
@@ -127,7 +128,7 @@ def init_routes(app):
         if not topic:
             return jsonify({"error": "Topic not found"}), 404
 
-        llm_response = get_llm_response(
+        llm_response, update_chat_history_dict = get_llm_response(
             user_message,
             debate.state,
             topic.description,
@@ -138,7 +139,8 @@ def init_routes(app):
             debate.user_responses_dict,
             debate.llm_responses_dict,
             debate.llm_model_type,
-            debate.llm_debate_type
+            debate.llm_debate_type,
+            debate.chat_history_dict
         )
 
         # Update LLM responses
@@ -157,6 +159,12 @@ def init_routes(app):
         debate.user_responses_dict = user_responses
         print(f"Updated user responses: {debate.user_responses_dict}")
         
+        # Update chat history
+        debate.chat_history_dict = update_chat_history_dict
+        print(f"Updated chat history: {debate.chat_history_dict}")
+        current_phase_chat_history = update_chat_history_dict.get(debate.state, {})
+
+
         # Update debate state (simple state machine for demo purposes)
         if debate.state == 'intro':
             debate.state = 'rebuttal'
@@ -171,7 +179,8 @@ def init_routes(app):
             "message": "Responses added successfully",
             "state": debate.state,
             "user_message": user_message,
-            "llm_response": llm_response
+            "llm_response": llm_response,
+            "chat_history": current_phase_chat_history
         })
     
     @app.route('/final_position', methods=['POST'])
