@@ -1,8 +1,9 @@
 import React from 'react';
 import DebateHistory from './DebateHistory';
 import DebateInput from './DebateInput';
+import ChatHistory from './ChatHistory';
 
-const DebateFormPage = ({ debate, history, updateDebate }) => {
+const DebateFormPage = ({ debate, debateHistory, chatHistory, updateDebate }) => {
 
     const continueToFinalOpinion = () => {
         // Set debate state to 'final_opinion'
@@ -13,7 +14,10 @@ const DebateFormPage = ({ debate, history, updateDebate }) => {
         <div>
             <h2>Debate Topic: {debate.topic}</h2>
             <h3>You are arguing: {debate.user_side}</h3>
-            <DebateHistory history={history} />
+            <div style={{ display: 'flex' }}>
+                <DebateHistory debateHistory={debateHistory} />
+                <ChatHistory chatHistory={chatHistory} />
+            </div>
             {debate.state !== 'finished' ? (
                 <DebateInput debateId={debate.debate_id} updateDebate={updateDebate} />
             ) : (
