@@ -43,6 +43,7 @@ class Debate(db.Model):
     topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
     llm_model_type = db.Column(db.String, nullable=False, default='')
     llm_debate_type = db.Column(db.String, nullable=False, default='')
+    chat_history = db.Column(db.Text, nullable=False, default='{}')
 
     @property
     def user_responses_dict(self):
@@ -60,3 +61,10 @@ class Debate(db.Model):
     def llm_responses_dict(self, value):
         self.llm_responses = json.dumps(value)
 
+    @property
+    def chat_history_dict(self):
+        return json.loads(self.chat_history)
+
+    @chat_history_dict.setter
+    def chat_history_dict(self, value):
+        self.chat_history = json.dumps(value)

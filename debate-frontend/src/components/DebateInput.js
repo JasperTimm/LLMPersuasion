@@ -3,8 +3,10 @@ import { axiosInstance } from '../config';
 
 const DebateInput = ({ debateId, updateDebate }) => {
     const [userMessage, setUserMessage] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const sendMessage = async () => {
+        setLoading(true);
         try {
             const response = await axiosInstance.post(`update_debate`, {
                 debate_id: debateId,
@@ -14,6 +16,8 @@ const DebateInput = ({ debateId, updateDebate }) => {
             setUserMessage('');
         } catch (error) {
             console.error("Error sending message:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -23,8 +27,12 @@ const DebateInput = ({ debateId, updateDebate }) => {
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
                 placeholder="Enter your message..."
+                disabled={loading}
             />
-            <button onClick={sendMessage}>Send</button>
+            <button onClick={sendMessage} disabled={loading}>
+                {loading ? 'Sending...' : 'Send'}
+            </button>
+            {loading && <div className="loading-indicator">Loading...</div>}
         </div>
     );
 };

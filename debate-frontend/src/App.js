@@ -9,7 +9,8 @@ const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userInfoCompleted, setUserInfoCompleted] = useState(false);
     const [debate, setDebate] = useState(null);
-    const [history, setHistory] = useState([]);
+    const [debateHistory, setDebateHistory] = useState([]);
+    const [chatHistory, setChatHistory] = useState([]);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -39,13 +40,15 @@ const App = () => {
     }, [isAuthenticated]);
 
     const updateDebate = (data) => {
-        setHistory([...history, { role: 'User', message: data.user_message }, { role: 'AI', message: data.llm_response }]);
+        setDebateHistory([...debateHistory, { role: 'User', message: data.user_message }, { role: 'AI', message: data.llm_response }]);
+        setChatHistory({ ...chatHistory, [debate.state]: data.chat_history });
         setDebate({ ...debate, state: data.state });
     };
 
     const resetDebate = () => {
         setDebate(null);
-        setHistory([]);
+        setDebateHistory([]);
+        setChatHistory([]);
     };
 
     if (!isAuthenticated) {
@@ -60,7 +63,8 @@ const App = () => {
         <HomePage
             debate={debate}
             setDebate={setDebate}
-            history={history}
+            debateHistory={debateHistory}
+            chatHistory={chatHistory}
             updateDebate={updateDebate}
             resetDebate={resetDebate}
         />

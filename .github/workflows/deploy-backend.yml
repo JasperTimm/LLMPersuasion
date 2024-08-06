@@ -1,0 +1,26 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        env:
+            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+            SERVER_HOST: ${{ secrets.SERVER_HOST }}
+            SERVER_KNOWN_HOST: ${{ secrets.SERVER_KNOWN_HOST }}
+        run: |
+            echo "$SSH_PRIVATE_KEY" > private_key
+            chmod 600 private_key
+            mkdir -p ~/.ssh
+            echo "$SERVER_KNOWN_HOST" >> ~/.ssh/known_hosts
+            ssh -i private_key $SERVER_USERNAME@$SERVER_HOST sudo systemctl stop llmdebate
+            ssh -i private_key $SERVER_USERNAME@$SERVER_HOST sudo systemctl start llmdebate
+            rm private_key
