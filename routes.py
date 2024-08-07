@@ -2,7 +2,7 @@ from flask import request, jsonify, redirect, url_for
 import uuid
 import random
 from database import db
-from models import User, Debate, Topic
+from models import User, Debate, Topic, UserInfo
 from llm_handler import get_llm_response
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
@@ -30,16 +30,6 @@ def init_routes(app):
     @login_required
     def protected():
         return jsonify({'message': f'Hello, {current_user.username}!'}), 200
-    
-    # @app.route('/check_user_info', methods=['GET'])
-    # @login_required
-    # def check_user_info():
-    #     user = User.query.get(current_user.id)
-    #     if not user:
-    #         return jsonify({'error': 'User not found'}), 404
-
-    #     userInfoCompleted = all([user.age, user.gender, user.profession, user.introvert_extrovert])
-    #     return jsonify({'userInfoCompleted': userInfoCompleted}), 200
 
     @app.route('/check_user_info', methods=['GET'])
     @login_required
@@ -48,50 +38,41 @@ def init_routes(app):
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
-        user_info_completed = all([
-            user.age is not None,
-            user.gender is not None,
-            user.profession is not None,
-            user.introvert_extrovert is not None,
-            user.extraverted_enthusiastic is not None,
-            user.critical_quarrelsome is not None,
-            user.dependable_self_disciplined is not None,
-            user.anxious_easily_upset is not None,
-            user.open_to_experiences_complex is not None,
-            user.reserved_quiet is not None,
-            user.sympathetic_warm is not None,
-            user.disorganized_careless is not None,
-            user.calm_emotionally_stable is not None,
-            user.conventional_uncreative is not None
-        ])
+        # Check user.user_info for completion
+        user_info_completed = user.user_info is not None
+
+        return jsonify({'user_info_completed': user_info_completed}), 200
     
     @app.route('/user_info', methods=['POST'])
     @login_required
     def user_info():
-        data = request.json
-        age = data.get('age')
-        gender = data.get('gender')
-        profession = data.get('profession')
-        introvert_extrovert = data.get('introvert_extrovert')
-        user.extraverted_enthusiastic = data.get('personality_traits')[0]
-        user.critical_quarrelsome = data.get('personality_traits')[1]
-        user.dependable_self_disciplined = data.get('personality_traits')[2]
-        user.anxious_easily_upset = data.get('personality_traits')[3]
-        user.open_to_experiences_complex = data.get('personality_traits')[4]
-        user.reserved_quiet = data.get('personality_traits')[5]
-        user.sympathetic_warm = data.get('personality_traits')[6]
-        user.disorganized_careless = data.get('personality_traits')[7]
-        user.calm_emotionally_stable = data.get('personality_traits')[8]
-        user.conventional_uncreative = data.get('personality_traits')[9]
-
         user = User.query.get(current_user.id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
-        user.age = age
-        user.gender = gender
-        user.profession = profession
-        user.introvert_extrovert = introvert_extrovert
+        data = request.json
+
+        if user.user_info is None:
+            user.user_info = UserInfo()
+            db.session.commit()
+
+        # Demographics
+        user.user_info.age = data.get('age')
+        user.user_info.gender = data.get('gender')
+        user.user_info.profession = data.get('profession')
+        user.user_info.education_level = data.get('educationLevel')
+        user.user_info.country_most_time = data.get('countryMostTime')
+        # Personality traits
+        user.user_info.extraverted_enthusiastic = data.get('extravertedEnthusiastic')
+        user.user_info.critical_quarrelsome = data.get('criticalQuarrelsome')
+        user.user_info.dependable_self_disciplined = data.get('dependableSelfDisciplined')
+        user.user_info.anxious_easily_upset = data.get('anxiousEasilyUpset')
+        user.user_info.open_to_experiences_complex = data.get('openToExperiencesComplex')
+        user.user_info.reserved_quiet = data.get('reservedQuiet')
+        user.user_info.sympathetic_warm = data.get('sympatheticWarm')
+        user.user_info.disorganized_careless = data.get('disorganizedCareless')
+        user.user_info.calm_emotionally_stable = data.get('calmEmotionallyStable')
+        user.user_info.conventional_uncreative = data.get('conventionalUncreative')
 
         db.session.commit()
 
@@ -178,6 +159,10 @@ def init_routes(app):
     @app.route('/update_debate', methods=['POST'])
     @login_required
     def update_debate():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
         data = request.json
         debate_id = data.get('debate_id')
         user_message = data.get('user_message')
@@ -206,7 +191,8 @@ def init_routes(app):
             debate.llm_responses_dict,
             debate.llm_model_type,
             debate.llm_debate_type,
-            debate.chat_history_dict
+            debate.chat_history_dict,
+            user.user_info
         )
 
         # Update LLM responses

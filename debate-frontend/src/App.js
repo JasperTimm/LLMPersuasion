@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import HomePage from './components/HomePage';
 import Login from './components/Login';
-import UserInfoPage from './components/UserInfoPage'; // Import the UserInfoPage component
+import UserInfoPage from './components/UserInfoPage';
 import { axiosInstance } from './config';
 
 const App = () => {
@@ -28,7 +28,7 @@ const App = () => {
         const checkUserInfo = async () => {
             try {
                 const response = await axiosInstance.get(`/check_user_info`);
-                setUserInfoCompleted(response.data.userInfoCompleted);
+                setUserInfoCompleted(response.data.user_info_completed);
             } catch (error) {
                 setUserInfoCompleted(false);
             }

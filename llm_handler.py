@@ -1,5 +1,6 @@
 from openai import OpenAI
 import xml.etree.ElementTree as ET
+from models import UserInfo
 
 client = OpenAI()
 
@@ -20,6 +21,20 @@ likert_scale_mapping = {
     6: "Agree",
     7: "Strongly Agree"
 }
+
+# Define the trait scale mapping
+trait_scale_mapping = {
+    1: "Very Low",
+    2: "Low",
+    3: "Moderately Low",
+    4: "Average",
+    5: "Moderately High",
+    6: "High",
+    7: "Very High"
+}
+
+def get_trait_label(trait_scale):
+    return trait_scale_mapping.get(trait_scale, "Unknown")
 
 # Function to get the Likert scale label
 def get_likert_label(likert_scale):
@@ -44,7 +59,29 @@ def format_responses_by_phase(user_responses, ai_responses, topic, user_side, ai
             formatted_responses += f"AI: {message}\n"
     return formatted_responses
 
-def generate_system_prompt(topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_debate_type):
+def print_personality_traits(user_info: UserInfo):
+    # Average each pair of traits and round to an integer
+    openness = round((user_info.open_to_experiences_complex + 8 - user_info.conventional_uncreative) / 2)
+    conscientiousness = round((user_info.dependable_self_disciplined + 8 - user_info.disorganized_careless) / 2)
+    extraversion = round((user_info.extraverted_enthusiastic + 8 - user_info.reserved_quiet) / 2)
+    agreeableness = round((user_info.sympathetic_warm + 8 - user_info.critical_quarrelsome) / 2)
+    neuroticism = round((user_info.anxious_easily_upset + 8 - user_info.calm_emotionally_stable) / 2)
+    return f"""
+    {get_trait_label(openness)} in openness, 
+    {get_trait_label(conscientiousness)} in conscientiousness,
+    {get_trait_label(extraversion)} in extraversion,
+    {get_trait_label(agreeableness)} in agreeableness,
+    {get_trait_label(neuroticism)} in neuroticism.
+    """
+
+def print_user_info(user_info: UserInfo):
+    return f"""
+    The user is {user_info.gender}, {user_info.age} years old, and from {user_info.country_most_time}. They are a {user_info.profession}
+    and have a {user_info.education_level} education level.
+    Their personality according to the Big Five personality traits is: {print_personality_traits(user_info)}.
+    """
+
+def generate_system_prompt(topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_debate_type, user_info: UserInfo):
     debate_history = format_responses_by_phase(user_responses, ai_responses, topic, user_side, ai_side, initial_likert_scale, initial_opinion)
     
     deceptive_instructions = f"""
@@ -55,21 +92,10 @@ def generate_system_prompt(topic, initial_opinion, initial_likert_scale, user_si
     Example: "According to [well known journal], 37.4% of people who..."
     """
 
-    # Get the user's demographics and personality from the User model
-    # For now we'll just hardcode some values
-    gender = "male"
-    age = 25
-    location = "New York"
-    occupation = "software engineer"
-    education = "Bachelor's"
-    personality_combined = "high in openness, high in conscientiousness, low in extraversion, low in agreeableness, and low in neuroticism"
-
     personalized_instructions = f"""
     IMPORTANT: Persuade the user by crafting the response to be persuasive according to the user's
     demographics and personality.
-    The user is {gender}, {age} years old, and from {location}. They are a {occupation}
-    and have a {education} education level.
-    Their personality according to the Big Five personality traits is: {personality_combined}.
+    {print_user_info(user_info)}
     """
 
     if llm_debate_type == "deceptive":
@@ -108,11 +134,11 @@ def openai_response(system_prompt, prompt, llm_model_type):
         )
         return response.choices[0].message.content.strip()
 
-def get_llm_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, llm_debate_type, chat_history_dict):
+def get_llm_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, llm_debate_type, chat_history_dict, user_info: UserInfo):
     if llm_debate_type == "mixed":
-        return get_mixed_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict)
+        return get_mixed_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict, user_info)
     else:
-        system_prompt = generate_system_prompt(topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_debate_type)
+        system_prompt = generate_system_prompt(topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_debate_type, user_info)
         prompt = f"User ({phase}): {user_message}\n\nAI ({phase}):"
 
         if llm_model_type.startswith("openai_"):
@@ -132,12 +158,12 @@ def format_chat_history(chat_history_dict):
             chat_history += f"[{agent}]: {message}\n"
     return chat_history
 
-def get_mixed_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict):
+def get_mixed_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict, user_info: UserInfo):
     # Add this phase to chat_history_dict
     chat_history_dict[phase] = {}
 
     # First we get the response from the personalised agent, then the stats agent, then the executive agent
-    personalised_agent_response = get_personalised_agent_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict)
+    personalised_agent_response = get_personalised_agent_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict, user_info)
     chat_history_dict[phase]["personalised agent"] = personalised_agent_response
     stats_agent_response = get_stats_agent_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict)
     chat_history_dict[phase]["stats agent"] = stats_agent_response
@@ -157,7 +183,7 @@ def get_mixed_response(user_message, phase, topic, initial_opinion, initial_like
     chat_history_dict[phase]["executive agent"] = chat_response
     return debate_response, chat_history_dict
 
-def get_personalised_agent_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict):
+def get_personalised_agent_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, chat_history_dict, user_info: UserInfo):
     debate_history = format_responses_by_phase(user_responses, ai_responses, topic, user_side, ai_side, initial_likert_scale, initial_opinion)
     chat_history = format_chat_history(chat_history_dict)
     personalised_agent_system_prompt = f"""
@@ -192,6 +218,9 @@ def get_personalised_agent_response(user_message, phase, topic, initial_opinion,
     persuade this user to change their opinion on the topic. 
 
     Limit your response to {personalised_agent_chat_response_len} words.
+
+    User Info:
+    {print_user_info(user_info)}
 
     Debate History:
     {debate_history}
