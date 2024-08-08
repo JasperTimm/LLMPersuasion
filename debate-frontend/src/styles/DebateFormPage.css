@@ -1,0 +1,50 @@
+.history-container {
+    display: flex;
+    gap: 20px;
+    width: 100%; /* Use full width */
+    max-width: 1200px; /* Set a maximum width */
+    margin: 0 auto; /* Center horizontally */
+}
+
+.debate-history, .chat-history {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px; /* Adjust as needed */
+    border: 2px solid #ccc; /* Add border */
+    background-color: #f9f9f9; /* Change background color */
+    padding: 10px; /* Add padding */
+    text-align: left; /* Align text to the left */
+}
+
+.debate-history.with-chat {
+    flex: 2;
+}
+
+.debate-info {
+    text-align: left;
+    margin-bottom: 20px;
+    max-width: 1200px; /* Set a maximum width */
+    margin: 0 auto; /* Center horizontally */
+}
+
+.debate-topic, .debate-side {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.debate-topic-label {
+    font-weight: bold;
+}
+
+.debate-history-container, .chat-history-container {
+    max-height: 400px; /* Adjust as needed */
+    overflow-y: auto;
+}
+
+.input-container {
+    max-width: 1200px; /* Set a maximum width */
+    margin: 20px auto; /* Center horizontally and add margin */
+    padding: 10px; /* Add padding */
+    border: 2px solid #ccc; /* Add border */
+    background-color: #f9f9f9; /* Change background color */
+}

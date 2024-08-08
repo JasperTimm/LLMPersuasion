@@ -18,7 +18,7 @@ const StartPage = ({ setDebate }) => {
     };
 
     return (
-        <div>
+        <div className="container">
             <label>
                 Select LLM Model:
                 <select value={llmModelType} onChange={(e) => setLlmModelType(e.target.value)}>

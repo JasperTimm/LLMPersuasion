@@ -5,10 +5,11 @@ import LikertScalePage from './LikertScalePage';
 import DebateFormPage from './DebateFormPage';
 import FinalOpinionPage from './FinalOpinionPage';
 import FinalLikertScalePage from './FinalLikertScalePage';
+import '../styles/HomePage.css';
 
 const HomePage = ({ debate, setDebate, debateHistory, chatHistory, updateDebate, resetDebate }) => {
     return (
-        <div>
+        <div className='home-page-container'>
             <h1>Debate Platform</h1>
             {!debate ? (
                 <StartPage setDebate={setDebate} />

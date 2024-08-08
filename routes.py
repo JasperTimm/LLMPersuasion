@@ -2,7 +2,7 @@ from flask import request, jsonify, redirect, url_for
 import uuid
 import random
 from database import db
-from models import User, Debate, Topic
+from models import User, Debate, Topic, UserInfo
 from llm_handler import get_llm_response
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
@@ -30,6 +30,53 @@ def init_routes(app):
     @login_required
     def protected():
         return jsonify({'message': f'Hello, {current_user.username}!'}), 200
+
+    @app.route('/check_user_info', methods=['GET'])
+    @login_required
+    def check_user_info():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Check user.user_info for completion
+        user_info_completed = user.user_info is not None
+
+        return jsonify({'user_info_completed': user_info_completed}), 200
+    
+    @app.route('/user_info', methods=['POST'])
+    @login_required
+    def user_info():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.json
+
+        if user.user_info is None:
+            user.user_info = UserInfo()
+            db.session.commit()
+
+        # Demographics
+        user.user_info.age = data.get('age')
+        user.user_info.gender = data.get('gender')
+        user.user_info.profession = data.get('profession')
+        user.user_info.education_level = data.get('educationLevel')
+        user.user_info.country_most_time = data.get('countryMostTime')
+        # Personality traits
+        user.user_info.extraverted_enthusiastic = data.get('extravertedEnthusiastic')
+        user.user_info.critical_quarrelsome = data.get('criticalQuarrelsome')
+        user.user_info.dependable_self_disciplined = data.get('dependableSelfDisciplined')
+        user.user_info.anxious_easily_upset = data.get('anxiousEasilyUpset')
+        user.user_info.open_to_experiences_complex = data.get('openToExperiencesComplex')
+        user.user_info.reserved_quiet = data.get('reservedQuiet')
+        user.user_info.sympathetic_warm = data.get('sympatheticWarm')
+        user.user_info.disorganized_careless = data.get('disorganizedCareless')
+        user.user_info.calm_emotionally_stable = data.get('calmEmotionallyStable')
+        user.user_info.conventional_uncreative = data.get('conventionalUncreative')
+
+        db.session.commit()
+
+        return jsonify({'message': 'User info updated successfully'}), 200
 
     @app.route('/start_debate', methods=['POST'])
     @login_required
@@ -112,6 +159,10 @@ def init_routes(app):
     @app.route('/update_debate', methods=['POST'])
     @login_required
     def update_debate():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
         data = request.json
         debate_id = data.get('debate_id')
         user_message = data.get('user_message')
@@ -140,7 +191,8 @@ def init_routes(app):
             debate.llm_responses_dict,
             debate.llm_model_type,
             debate.llm_debate_type,
-            debate.chat_history_dict
+            debate.chat_history_dict,
+            user.user_info
         )
 
         # Update LLM responses
@@ -160,11 +212,11 @@ def init_routes(app):
         print(f"Updated user responses: {debate.user_responses_dict}")
         
         # Update chat history
-        debate.chat_history_dict = update_chat_history_dict
-        print(f"Updated chat history: {debate.chat_history_dict}")
-        current_phase_chat_history = update_chat_history_dict.get(debate.state, {})
-
-
+        if update_chat_history_dict:
+            debate.chat_history_dict = update_chat_history_dict
+            print(f"Updated chat history: {debate.chat_history_dict}")
+            current_phase_chat_history = update_chat_history_dict.get(debate.state, {})
+            
         # Update debate state (simple state machine for demo purposes)
         if debate.state == 'intro':
             debate.state = 'rebuttal'
@@ -175,13 +227,17 @@ def init_routes(app):
         
         db.session.commit()
 
-        return jsonify({
+        # Only add chat_history if it was updated
+        base_response = {
             "message": "Responses added successfully",
             "state": debate.state,
             "user_message": user_message,
-            "llm_response": llm_response,
-            "chat_history": current_phase_chat_history
-        })
+            "llm_response": llm_response
+        }
+        if update_chat_history_dict:
+            base_response["chat_history"] = current_phase_chat_history
+
+        return jsonify(base_response)
     
     @app.route('/final_position', methods=['POST'])
     @login_required
