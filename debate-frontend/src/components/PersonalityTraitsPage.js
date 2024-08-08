@@ -41,6 +41,28 @@ function PersonalityTraitsPage({ demographics, setUserInfoCompleted }) {
     return (
         <div className="container">
             <h2>Personality Traits</h2>
+            <div class="instructions">
+                <p>
+                    Here are a number of personality traits that may or may not apply to you. 
+                    Please write a number next to each statement to indicate the extent to which 
+                    you agree or disagree with that statement. You should rate the extent to which 
+                    the pair of traits applies to you, even if one characteristic applies more 
+                    strongly than the other.
+                </p>
+                <p>
+                    <strong>Rating Scale:</strong>
+                    <ul>
+                        <li>1 = Disagree strongly</li>
+                        <li>2 = Disagree moderately</li>
+                        <li>3 = Disagree a little</li>
+                        <li>4 = Neither agree nor disagree</li>
+                        <li>5 = Agree a little</li>
+                        <li>6 = Agree moderately</li>
+                        <li>7 = Agree strongly</li>
+                    </ul>
+                </p>
+                <p><strong>I see myself as:</strong></p>
+            </div>
             <input
                 type="number"
                 value={personalityTraits.extravertedEnthusiastic}

@@ -33,9 +33,11 @@ const LikertScalePage = ({ debate, setDebate }) => {
     };
 
     return (
-        <div>
-            <h2>Debate Topic: {debate.topic}</h2>
-            <p>Rate your opinion on a scale of 1-7:</p>
+        <div className='container'>
+            <div className="debate-topic">
+                <span className="debate-topic-label">Debate Topic:</span>
+                <span>{debate.topic}</span>
+            </div>
             <div className="range-container">
                 <input
                     type="range"
@@ -56,7 +58,7 @@ const LikertScalePage = ({ debate, setDebate }) => {
                     </div>
                 ))}
             </div>
-            <button onClick={submitLikert}>Submit</button>
+            <button className='submit-button' onClick={submitLikert}>Submit</button>
         </div>
     );
 };

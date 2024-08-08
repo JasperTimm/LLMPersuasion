@@ -212,11 +212,11 @@ def init_routes(app):
         print(f"Updated user responses: {debate.user_responses_dict}")
         
         # Update chat history
-        debate.chat_history_dict = update_chat_history_dict
-        print(f"Updated chat history: {debate.chat_history_dict}")
-        current_phase_chat_history = update_chat_history_dict.get(debate.state, {})
-
-
+        if update_chat_history_dict:
+            debate.chat_history_dict = update_chat_history_dict
+            print(f"Updated chat history: {debate.chat_history_dict}")
+            current_phase_chat_history = update_chat_history_dict.get(debate.state, {})
+            
         # Update debate state (simple state machine for demo purposes)
         if debate.state == 'intro':
             debate.state = 'rebuttal'
@@ -227,13 +227,17 @@ def init_routes(app):
         
         db.session.commit()
 
-        return jsonify({
+        # Only add chat_history if it was updated
+        base_response = {
             "message": "Responses added successfully",
             "state": debate.state,
             "user_message": user_message,
-            "llm_response": llm_response,
-            "chat_history": current_phase_chat_history
-        })
+            "llm_response": llm_response
+        }
+        if update_chat_history_dict:
+            base_response["chat_history"] = current_phase_chat_history
+
+        return jsonify(base_response)
     
     @app.route('/final_position', methods=['POST'])
     @login_required

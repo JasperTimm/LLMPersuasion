@@ -24,3 +24,7 @@
 .range-container input[type="range"] {
 	width: 100%;
 }
+
+.submit-button {
+	margin-top: 50px; /* Add margin to separate from Likert scale */
+  }

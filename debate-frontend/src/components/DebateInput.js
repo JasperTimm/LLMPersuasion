@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { axiosInstance } from '../config';
+import '../styles/DebateInput.css';
 
-const DebateInput = ({ debateId, updateDebate }) => {
+const DebateInput = ({ debateId, updateDebate, debateState }) => {
     const [userMessage, setUserMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -21,12 +22,26 @@ const DebateInput = ({ debateId, updateDebate }) => {
         }
     };
 
+    const getPlaceholderText = () => {
+        switch (debateState) {
+            case 'intro':
+                return 'Please enter your Introduction in the debate';
+            case 'rebuttal':
+                return 'Please enter your Rebuttal in the debate';
+            case 'conclusion':
+                return 'Please enter your Conclusion in the debate';
+            default:
+                return 'Enter your message...';
+        }
+    };
+
     return (
         <div>
             <textarea
+                className="large-textarea"
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
-                placeholder="Enter your message..."
+                placeholder={getPlaceholderText()}
                 disabled={loading}
             />
             <button onClick={sendMessage} disabled={loading}>

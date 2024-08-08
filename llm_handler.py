@@ -142,7 +142,7 @@ def get_llm_response(user_message, phase, topic, initial_opinion, initial_likert
         prompt = f"User ({phase}): {user_message}\n\nAI ({phase}):"
 
         if llm_model_type.startswith("openai_"):
-            return openai_response(system_prompt, prompt, llm_model_type), chat_history_dict
+            return openai_response(system_prompt, prompt, llm_model_type), None
         else:
             return "Error: Invalid LLM model type"
 

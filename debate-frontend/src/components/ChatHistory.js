@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const ChatHistory = ({ chatHistory }) => {
+    const historyRef = useRef(null);
     const agentOrder = ['personalised agent', 'stats agent', 'executive agent'];
 
+    useEffect(() => {
+        if (historyRef.current) {
+            historyRef.current.scrollTop = historyRef.current.scrollHeight;
+        }
+    }, [chatHistory]);
+
     return (
-        <div>
+        <div ref={historyRef} className="chat-history-container">
             <h2>Chat History</h2>
             {Object.entries(chatHistory).map(([phase, messages], phaseIndex) => (
                 <div key={phaseIndex}>

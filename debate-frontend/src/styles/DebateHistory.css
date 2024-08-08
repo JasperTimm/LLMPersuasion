@@ -1,0 +1,9 @@
+.debate-history-list {
+    list-style-type: none;
+    padding: 0;
+    text-align: left;
+}
+
+.debate-history-item {
+    margin-bottom: 10px; /* Add space between items */
+}
