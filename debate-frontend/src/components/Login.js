@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import { axiosInstance } from '../config';
 import '../styles/Login.css';
 
-const Login = ({ setIsAuthenticated }) => {
+const Login = ({ setIsAuthenticated, setNewUser, setProfileUsername }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axiosInstance.post(`/login`, { username, password });
-            alert(response.data.message);
+            await axiosInstance.post(`/login`, { username, password });
             setIsAuthenticated(true);
+            setProfileUsername(username);
+            setErrorMessage('');
         } catch (error) {
-            alert('Login failed');
+            setErrorMessage('Login failed');
         }
     };
 
@@ -28,6 +30,10 @@ const Login = ({ setIsAuthenticated }) => {
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <button type="submit">Login</button>
+            <div className="create-account-link">
+                <button type="button" onClick={() => setNewUser(true)}>Create a new account</button>
+            </div>
+            {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}            
         </form>
     );
 };

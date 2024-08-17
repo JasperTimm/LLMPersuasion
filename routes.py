@@ -1,6 +1,7 @@
 from flask import request, jsonify, redirect, url_for
 import uuid
 import random
+import string
 from database import db
 from models import User, Debate, Topic, UserInfo
 from llm_handler import get_llm_response
@@ -9,6 +10,31 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 def init_routes(app):
+    @app.route('/create_new_user', methods=['POST'])
+    def create_new_user():
+        def generate_username():
+            digits = ''.join(random.choice(string.digits) for _ in range(8))
+            return f'u{digits}'
+
+        def generate_password():
+            letters = string.ascii_lowercase
+            parts = [''.join(random.choice(letters) for _ in range(5)) for _ in range(3)]
+            return '-'.join(parts)
+
+        username = generate_username()
+        password = generate_password()
+
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        response = {
+            'username': username,
+            'password': password
+        }
+        return jsonify(response), 201
+
     @app.route('/login', methods=['POST'])
     def login():
         data = request.json
@@ -20,7 +46,7 @@ def init_routes(app):
             return jsonify({'message': 'Logged in successfully'}), 200
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    @app.route('/logout')
+    @app.route('/logout', methods=['POST'])
     @login_required
     def logout():
         logout_user()
