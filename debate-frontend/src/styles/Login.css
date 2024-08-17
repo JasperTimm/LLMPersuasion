@@ -46,3 +46,22 @@ button[type="submit"] {
 button[type="submit"]:hover {
     background-color: #0056b3;
 }
+
+.create-account-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.create-account-link button {
+    background: none;
+    border: none;
+    color: #007BFF;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.create-account-link button:hover {
+    background-color: #ccc;
+    text-decoration: underline;
+}

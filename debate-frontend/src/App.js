@@ -3,15 +3,19 @@ import React, { useState, useEffect } from 'react';
 import HomePage from './components/HomePage';
 import Login from './components/Login';
 import UserInfoPage from './components/UserInfoPage';
+import NewUserPage from './components/NewUserPage';
+import Profile from './components/Profile';
 import { axiosInstance } from './config';
 import './App.css';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userInfoCompleted, setUserInfoCompleted] = useState(false);
+    const [newUser, setNewUser] = useState(false);
     const [debate, setDebate] = useState(null);
     const [debateHistory, setDebateHistory] = useState([]);
     const [chatHistory, setChatHistory] = useState({});
+    const [profileUsername, setProfileUsername] = useState('');
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -54,22 +58,34 @@ const App = () => {
     };
 
     if (!isAuthenticated) {
-        return <Login setIsAuthenticated={setIsAuthenticated} />;
+        if (newUser) {
+            return <NewUserPage setNewUser={setNewUser}/>;
+        } else {
+            return <Login setIsAuthenticated={setIsAuthenticated} setNewUser={setNewUser} setProfileUsername={setProfileUsername} />;
+        }
     }
 
-    if (isAuthenticated && !userInfoCompleted) {
-        return <UserInfoPage setUserInfoCompleted={setUserInfoCompleted} />;
+    let content;
+    if (!userInfoCompleted) {
+        content = <UserInfoPage setUserInfoCompleted={setUserInfoCompleted} />;
+    } else {
+        content = (
+            <HomePage
+                debate={debate}
+                setDebate={setDebate}
+                debateHistory={debateHistory}
+                chatHistory={chatHistory}
+                updateDebate={updateDebate}
+                resetDebate={resetDebate}
+            />
+        );
     }
 
     return (
-        <HomePage
-            debate={debate}
-            setDebate={setDebate}
-            debateHistory={debateHistory}
-            chatHistory={chatHistory}
-            updateDebate={updateDebate}
-            resetDebate={resetDebate}
-        />
+        <div>
+            <Profile profileUsername={profileUsername} setIsAuthenticated={setIsAuthenticated} />
+            {content}
+        </div>
     );
 };
 
