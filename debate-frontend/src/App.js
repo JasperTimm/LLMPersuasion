@@ -8,16 +8,12 @@ import { axiosInstance } from './config';
 import './App.css';
 
 const App = () => {
-    // const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userInfoCompleted, setUserInfoCompleted] = useState(false);
     const [newUser, setNewUser] = useState(false);
     const [debate, setDebate] = useState(null);
     const [user, setUser] = useState(null);
     const [debateHistory, setDebateHistory] = useState([]);
     const [chatHistory, setChatHistory] = useState({});
-    // const [profileUsername, setProfileUsername] = useState('');
-    // const [isAdmin, setIsAdmin] = useState(false);
-    // const [isFinished, setIsFinished] = useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
