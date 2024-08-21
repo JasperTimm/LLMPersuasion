@@ -9,6 +9,17 @@ from database import db, init_db
 from models import User
 from routes import init_routes
 
+class PrefixMiddleware(object):
+    def __init__(self, app, prefix=''):
+        self.app = app
+        self.prefix = prefix
+
+    def __call__(self, environ, start_response):
+        if environ['PATH_INFO'].startswith(self.prefix):
+            environ['PATH_INFO'] = environ['PATH_INFO'][len(self.prefix):]
+            environ['SCRIPT_NAME'] = self.prefix
+        return self.app(environ, start_response)
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///debate_website.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -43,6 +54,8 @@ if __name__ == '__main__':
     env = os.environ.get('FLASK_ENV', 'development')
     port = int(os.environ.get('FLASK_RUN_PORT', 5000))
     if env == 'production':
+        # Prefix the API routes in prod
+        app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/api')
         # In prod we have SSL termination from the web server
         app.run(debug=False, port=port)
     else:
