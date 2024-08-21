@@ -1,0 +1,38 @@
+.container {
+    padding: 20px;
+}
+
+.debate-info {
+    margin-bottom: 20px;
+}
+
+.debate-topic-label {
+    font-weight: bold;
+}
+
+.argument-container {
+    margin-top: 20px;
+}
+
+.argument-text {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    text-align: left;
+    line-height: 1.6;
+}
+
+.continue-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.continue-button:hover {
+    background-color: #0056b3;
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import SelectionPage from './SelectionPage';
 import StartDebatePage from './StartDebatePage';
 import OpinionPage from './OpinionPage';
@@ -8,6 +8,7 @@ import FinalOpinionPage from './FinalOpinionPage';
 import FinalLikertScalePage from './FinalLikertScalePage';
 import ContinuePage from './ContinuePage';
 import ResultsPage from './ResultsPage';
+import ArgumentPage from './ArgumentPage';
 import '../styles/MainPage.css';
 
 const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, updateDebate, user, setUser }) => {
@@ -24,6 +25,8 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
                 <OpinionPage debate={debate} setDebate={setDebate} />
             ) : !debate.initial_likert_score ? (
                 <LikertScalePage debate={debate} setDebate={setDebate} />
+            ) : debate.argument && debate.state !== 'final_opinion' ? (
+                <ArgumentPage debate={debate} setDebate={setDebate} />
             ) : debate.state !== 'final_opinion' ? (
                 <DebateFormPage debate={debate} debateHistory={debateHistory} chatHistory={chatHistory} updateDebate={updateDebate} />
             ) : !debate.final_opinion ? (

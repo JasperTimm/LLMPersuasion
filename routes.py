@@ -2,6 +2,7 @@ from flask import request, jsonify, redirect, url_for
 import uuid
 import random
 import string
+import json
 from database import db
 from models import User, Debate, Topic, UserInfo, all_debate_types
 from llm_handler import get_llm_response
@@ -201,8 +202,10 @@ def init_routes(app):
 
         response = {
             'debate_id': debate_id,
-            'topic': chosen_topic.description
+            'topic': chosen_topic.description,
+            'argument': llm_debate_type == 'argument'
         }
+
         print(f"Started debate with ID: {debate_id}, topic: {chosen_topic.description}, and user ID: {current_user.id}")
         return jsonify(response)
 
@@ -241,6 +244,35 @@ def init_routes(app):
         }
         return jsonify(response)
 
+    @app.route('/get_argument', methods=['POST'])
+    @login_required
+    def get_argument():
+        data = request.json
+        debate_id = data.get('debate_id')
+        debate = Debate.query.get(debate_id)
+        if not debate:
+            return jsonify({'error': 'Invalid debate ID'}), 400
+
+        if debate.llm_debate_type != 'argument':
+            return jsonify({'error': 'Debate type is not argument'}), 400
+
+        try:
+            with open('arguments.json', 'r') as f:
+                arguments = json.load(f)
+        except FileNotFoundError:
+            return jsonify({'error': 'Arguments file not found'}), 500
+
+        topic = Topic.query.get(debate.topic_id)
+        argument = next((arg['argument'] for arg in arguments if arg['topic'] == topic.description and arg['side'] == debate.ai_side), None)
+        if not argument:
+            return jsonify({'error': 'Argument not found'}), 404
+
+        response = {
+            'debate_id': debate_id,
+            'argument': argument
+        }
+        return jsonify(response), 200
+
     @app.route('/update_debate', methods=['POST'])
     @login_required
     def update_debate():
@@ -263,14 +295,6 @@ def init_routes(app):
         topic = Topic.query.get(debate.topic_id)
         if not topic:
             return jsonify({"error": "Topic not found"}), 404
-
-        if debate.llm_debate_type == 'argument':
-            debate.state = 'finished'
-            db.session.commit()
-            return jsonify({
-                "argument": "This is a placeholder for the argument",
-                "message": "Debate finished"
-            })
 
         llm_response, update_chat_history_dict = get_llm_response(
             user_message,
