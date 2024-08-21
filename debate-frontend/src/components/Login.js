@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { axiosInstance } from '../config';
 import '../styles/Login.css';
 
-const Login = ({ setIsAuthenticated, setNewUser, setProfileUsername }) => {
+const Login = ({ setUser, setNewUser }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -10,9 +10,8 @@ const Login = ({ setIsAuthenticated, setNewUser, setProfileUsername }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axiosInstance.post(`/login`, { username, password });
-            setIsAuthenticated(true);
-            setProfileUsername(username);
+            const response = await axiosInstance.post(`/login`, { username, password });
+            setUser(response.data.user);
             setErrorMessage('');
         } catch (error) {
             setErrorMessage('Login failed');
