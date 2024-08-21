@@ -18,7 +18,7 @@ const OpinionPage = ({ debate, setDebate }) => {
           className="input-textarea"
           value={opinion}
           onChange={(e) => setOpinionText(e.target.value)}
-          placeholder="Enter your opinion on this topic in a few sentences"
+          placeholder="Briefly summarize your opinion on this topic in 1-2 sentences"
         />
         <button className="submit-button" onClick={submitOpinion}>
           Submit Opinion

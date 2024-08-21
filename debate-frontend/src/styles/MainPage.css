@@ -1,5 +1,5 @@
 /* Container for the entire page */
-.home-page-container {
+.main-page-container {
     text-align: center; /* Center-align the content */
     padding-top: 50px; /* Add padding to the top */
     max-width: 1400px; /* Increase the width */
@@ -7,7 +7,7 @@
 }
 
 /* Style for the header */
-.home-page-container h1 {
+.main-page-container h1 {
     font-size: 2.5em;
     margin-bottom: 20px;
     color: #333;

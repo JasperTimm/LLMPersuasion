@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()  # take environment variables from .env.
+import os
 from models import Topic, User
 from database import db, init_db
 from topics import original_topics
@@ -15,15 +18,15 @@ def populate_topics():
         db.session.add(topic)
     db.session.commit()
 
-def add_users():
-    # Add test user here for now
-    hashed_password = generate_password_hash('password', method='pbkdf2:sha256')
-    user = User(username='guest', password=hashed_password)
+def add_admin_user():
+    admin_pwd = os.environ.get('ADMIN_PASSWORD', 'password')
+    hashed_password = generate_password_hash(admin_pwd, method='pbkdf2:sha256')
+    user = User(username='admin', password=hashed_password, admin=True)
     db.session.add(user)
     db.session.commit()
 
 if __name__ == '__main__':
     with app.app_context():
         init_db()
-        add_users()
+        add_admin_user()
         populate_topics()    

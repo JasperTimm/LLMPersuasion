@@ -3,8 +3,6 @@ import { axiosInstance } from '../config';
 import '../styles/UserInfoPage.css';
 
 function PersonalityTraitsPage({ demographics, setUserInfoCompleted }) {
-    console.log('demographics:', demographics);
-
     const [personalityTraits, setPersonalityTraits] = useState({
         extravertedEnthusiastic: '',
         criticalQuarrelsome: '',
