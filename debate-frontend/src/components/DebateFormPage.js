@@ -7,7 +7,6 @@ import '../styles/DebateFormPage.css';
 const DebateFormPage = ({ debate, debateHistory, chatHistory, updateDebate }) => {
 
     const continueToFinalOpinion = () => {
-        // Set debate state to 'final_opinion'
         updateDebate({ state: 'final_opinion' });
     };
 
