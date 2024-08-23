@@ -48,3 +48,7 @@
     border: 2px solid #ccc; /* Add border */
     background-color: #f9f9f9; /* Change background color */
 }
+
+.debate-initial-opinion {
+    font-weight: normal;
+}
