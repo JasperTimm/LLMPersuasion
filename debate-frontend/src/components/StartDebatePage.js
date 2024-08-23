@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { axiosInstance } from '../config';
+import React from 'react';
 import '../styles/StartDebatePage.css';
 
 const StartDebatePage = ({ startDebate }) => {
