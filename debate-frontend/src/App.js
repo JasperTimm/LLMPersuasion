@@ -4,6 +4,8 @@ import Login from './components/Login';
 import UserInfoPage from './components/UserInfoPage';
 import NewUserPage from './components/NewUserPage';
 import Profile from './components/Profile';
+import EndEarlyPage from './components/EndEarlyPage';
+import ResultsPage from './components/ResultsPage';
 import { axiosInstance } from './config';
 import './App.css';
 
@@ -14,6 +16,7 @@ const App = () => {
     const [user, setUser] = useState(null);
     const [debateHistory, setDebateHistory] = useState([]);
     const [chatHistory, setChatHistory] = useState({});
+    const [endEarly, setEndEarly] = useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -72,28 +75,27 @@ const App = () => {
         }
     }
 
-    let content;
-    if (!userInfoCompleted) {
-        content = <UserInfoPage setUserInfoCompleted={setUserInfoCompleted} />;
-    } else {
-        content = (
-            <MainPage
-                debate={debate}
-                startDebate={startDebate}
-                setDebate={setDebate}
-                debateHistory={debateHistory}
-                chatHistory={chatHistory}
-                updateDebate={updateDebate}
-                user={user}
-                setUser={setUser}
-            />
-        );
-    }
-
     return (
         <div>
-            <Profile user={user} setUser={setUser} resetDebate={resetDebate} />
-            {content}
+            <Profile user={user} setUser={setUser} resetDebate={resetDebate} setEndEarly={setEndEarly} />
+            {user.finished ? (
+                <ResultsPage />
+            ) : endEarly ? (
+                <EndEarlyPage setEndEarly={setEndEarly} user={user} setUser={setUser} />
+            ) : !userInfoCompleted ? (
+                <UserInfoPage setUserInfoCompleted={setUserInfoCompleted} />
+            ) : (
+                <MainPage
+                    debate={debate}
+                    startDebate={startDebate}
+                    setDebate={setDebate}
+                    debateHistory={debateHistory}
+                    chatHistory={chatHistory}
+                    updateDebate={updateDebate}
+                    user={user}
+                    setUser={setUser}
+                />
+            )}
         </div>
     );
 };

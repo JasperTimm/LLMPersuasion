@@ -7,7 +7,6 @@ import DebateFormPage from './DebateFormPage';
 import FinalOpinionPage from './FinalOpinionPage';
 import FinalLikertScalePage from './FinalLikertScalePage';
 import ContinuePage from './ContinuePage';
-import ResultsPage from './ResultsPage';
 import ArgumentPage from './ArgumentPage';
 import '../styles/MainPage.css';
 
@@ -15,9 +14,7 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
     return (
         <div className='main-page-container'>
             <h1>Debate Platform</h1>
-            {   user.finished ? (
-                <ResultsPage />
-            ) : !debate && user.admin ? (
+            {   !debate && user.admin ? (
                 <SelectionPage setDebate={setDebate} />
             ) : !debate ? (
                 <StartDebatePage startDebate={startDebate} />
