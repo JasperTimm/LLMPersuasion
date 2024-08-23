@@ -5,7 +5,7 @@ const EndEarlyPage = ({ setEndEarly, user, setUser }) => {
 
     const handleConfirm = async () => {
         try {
-            await axiosInstance.post(`/conclude`);
+            await axiosInstance.post(`/finish`);
             setUser({ ...user, finished: true });
             setEndEarly(false);
         } catch (error) {

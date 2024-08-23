@@ -5,6 +5,7 @@ import UserInfoPage from './components/UserInfoPage';
 import NewUserPage from './components/NewUserPage';
 import Profile from './components/Profile';
 import EndEarlyPage from './components/EndEarlyPage';
+import ConclusionPage from './components/ConclusionPage';
 import ResultsPage from './components/ResultsPage';
 import { axiosInstance } from './config';
 import './App.css';
@@ -78,8 +79,10 @@ const App = () => {
     return (
         <div>
             <Profile user={user} setUser={setUser} resetDebate={resetDebate} setEndEarly={setEndEarly} />
-            {user.finished ? (
+            {   user.concluded ? (
                 <ResultsPage />
+            ) : user.finished ? (
+                <ConclusionPage user={user} setUser={setUser} />
             ) : endEarly ? (
                 <EndEarlyPage setEndEarly={setEndEarly} user={user} setUser={setUser} />
             ) : !userInfoCompleted ? (

@@ -48,7 +48,8 @@ def init_routes(app):
                 'user': {
                     'username': user.username,
                     'admin': user.admin,
-                    'finished': user.finished
+                    'finished': user.finished,
+                    'concluded': user.concluded
                 }
             }), 200
         return jsonify({'message': 'Invalid credentials'}), 401
@@ -71,6 +72,7 @@ def init_routes(app):
                 'username': user.username,
                 'admin': user.admin,
                 'finished': user.finished,
+                'concluded': user.concluded
             }
         }), 200
 
@@ -389,9 +391,9 @@ def init_routes(app):
 
         return jsonify(response), 200
     
-    @app.route('/conclude', methods=['POST'])
+    @app.route('/finish', methods=['POST'])
     @login_required
-    def conclude():
+    def finish():
         user = User.query.get(current_user.id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
@@ -399,4 +401,19 @@ def init_routes(app):
         user.finished = True
         db.session.commit()
         
-        return jsonify({'message': 'User marked as finished'}), 200    
+        return jsonify({'message': 'User marked as finished'}), 200
+    
+    @app.route('/conclude', methods=['POST'])
+    @login_required
+    def conclude():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if not user.finished:
+            return jsonify({'error': 'User must be finished before concluding'}), 400
+
+        user.concluded = True
+        db.session.commit()
+        
+        return jsonify({'message': 'User marked as concluded'}), 200      

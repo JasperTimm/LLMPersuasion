@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
     total_debates = db.Column(db.Integer, nullable=False, default=0)
     admin = db.Column(db.Boolean, nullable=False, default=False)
     finished = db.Column(db.Boolean, nullable=False, default=False)
+    concluded = db.Column(db.Boolean, nullable=False, default=False)
     user_info = db.relationship('UserInfo', backref='user', uselist=False)
 
 class UserInfo(db.Model):
