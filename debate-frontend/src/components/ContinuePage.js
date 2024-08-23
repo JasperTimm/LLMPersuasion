@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { axiosInstance } from '../config';
 import '../styles/ContinuePage.css';
 
-function ContinuePage({ startDebate, user, setUser }) {
+function ContinuePage({ startDebate, user, setUser, resetDebate }) {
     const [selectedOption, setSelectedOption] = useState(null);
     const [showContinueLaterMessage, setShowContinueLaterMessage] = useState(false);
 
@@ -20,6 +20,7 @@ function ContinuePage({ startDebate, user, setUser }) {
     };
 
     const handleSubmit = () => {
+        resetDebate();
         switch (selectedOption) {
             case 'continueNow':
                 startDebate();

@@ -97,6 +97,7 @@ const App = () => {
                     updateDebate={updateDebate}
                     user={user}
                     setUser={setUser}
+                    resetDebate={resetDebate}
                 />
             )}
         </div>

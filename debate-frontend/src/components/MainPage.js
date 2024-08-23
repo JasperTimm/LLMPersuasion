@@ -10,7 +10,7 @@ import ContinuePage from './ContinuePage';
 import ArgumentPage from './ArgumentPage';
 import '../styles/MainPage.css';
 
-const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, updateDebate, user, setUser }) => {
+const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, updateDebate, user, setUser, resetDebate }) => {
     return (
         <div className='main-page-container'>
             <h1>Debate Platform</h1>
@@ -31,7 +31,7 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
             ) : !debate.final_likert_score ? (
                 <FinalLikertScalePage debate={debate} setDebate={setDebate} user={user} setUser={setUser} />
             ) : (
-                <ContinuePage startDebate={startDebate} user={user} setUser={setUser} />
+                <ContinuePage startDebate={startDebate} user={user} setUser={setUser} resetDebate={resetDebate} />
             )} 
         </div>
     );
