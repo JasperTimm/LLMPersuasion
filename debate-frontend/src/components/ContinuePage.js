@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { axiosInstance } from '../config';
 import '../styles/ContinuePage.css';
 
-function ContinuePage({ startDebate, user, setUser }) {
+function ContinuePage({ startDebate, user, setUser, resetDebate }) {
     const [selectedOption, setSelectedOption] = useState(null);
     const [showContinueLaterMessage, setShowContinueLaterMessage] = useState(false);
 
-    const concludeStudy = async () => {
+    const finishStudy = async () => {
         try {
-            await axiosInstance.post(`/conclude`);
+            await axiosInstance.post(`/finish`);
             setUser({ ...user, finished: true });
         } catch (error) {
-            console.error("Error concluding study:", error);
+            console.error('Error finishing participation:', error);
         }
     };
 
@@ -20,6 +20,7 @@ function ContinuePage({ startDebate, user, setUser }) {
     };
 
     const handleSubmit = () => {
+        resetDebate();
         switch (selectedOption) {
             case 'continueNow':
                 startDebate();
@@ -27,8 +28,8 @@ function ContinuePage({ startDebate, user, setUser }) {
             case 'continueLater':
                 setShowContinueLaterMessage(true);
                 break;
-            case 'concludeStudy':
-                concludeStudy();
+            case 'finishStudy':
+                finishStudy();
                 break;
             default:
                 alert('Please select an option to proceed.');
@@ -77,14 +78,14 @@ function ContinuePage({ startDebate, user, setUser }) {
                             <span className="option-title">Continue Later:</span> Take a break and come back later to continue. It's crucial you conclude your participation in the study at some point. If you think you might forget to come back, we recommend you conclude your participation now.
                         </label>
                     </div>
-                    <div className={`continue-option conclude-study ${selectedOption === 'concludeStudy' ? 'selected' : ''}`} 
-                        onClick={() => setSelectedOption('concludeStudy')}>
+                    <div className={`continue-option conclude-study ${selectedOption === 'finishStudy' ? 'selected' : ''}`} 
+                        onClick={() => setSelectedOption('finishStudy')}>
                         <input
                             type="radio"
                             id="conclude-study"
                             name="continueOption"
-                            value="concludeStudy"
-                            checked={selectedOption === 'concludeStudy'}
+                            value="finishStudy"
+                            checked={selectedOption === 'finishStudy'}
                             onChange={handleOptionChange}
                         />
                         <label htmlFor="conclude-study">

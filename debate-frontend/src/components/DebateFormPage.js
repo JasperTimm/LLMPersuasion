@@ -7,7 +7,6 @@ import '../styles/DebateFormPage.css';
 const DebateFormPage = ({ debate, debateHistory, chatHistory, updateDebate }) => {
 
     const continueToFinalOpinion = () => {
-        // Set debate state to 'final_opinion'
         updateDebate({ state: 'final_opinion' });
     };
 
@@ -19,6 +18,7 @@ const DebateFormPage = ({ debate, debateHistory, chatHistory, updateDebate }) =>
                     <span>{debate.topic}</span>
                 </div>
                 <h3 className="debate-side">You are arguing: <i>{debate.user_side}</i></h3>
+                <h3 className="debate-initial-opinion"><strong>Your initial opinion:</strong> {debate.initial_opinion}</h3>
             </div>
             <div className="history-container">
                 <div className={`debate-history ${Object.keys(chatHistory).length > 0 ? 'with-chat' : ''}`}>
