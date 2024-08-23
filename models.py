@@ -2,11 +2,21 @@ import json
 from database import db
 from flask_login import UserMixin
 
+all_debate_types = [
+    'argument',
+    'simple',
+    'stats',
+    'personalized',
+    'mixed'
+]
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     total_debates = db.Column(db.Integer, nullable=False, default=0)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
+    finished = db.Column(db.Boolean, nullable=False, default=False)
     user_info = db.relationship('UserInfo', backref='user', uselist=False)
 
 class UserInfo(db.Model):

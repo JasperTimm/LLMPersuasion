@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { axiosInstance } from '../config';
 
-const StartPage = ({ setDebate }) => {
+const SelectionPage = ({ setDebate }) => {
     const [llmModelType, setLlmModelType] = useState('openai_gpt-4o-mini');
     const [llmDebateType, setLlmDebateType] = useState('simple');
 
-    const startDebate = async () => {
+    const startDebateAdmin = async () => {
         try {
-            const response = await axiosInstance.post(`/start_debate`, { 
+            const response = await axiosInstance.post(`/start_debate_admin`, { 
                 llm_model_type: llmModelType,
                 llm_debate_type: llmDebateType
             });
@@ -29,15 +29,16 @@ const StartPage = ({ setDebate }) => {
             <label>
                 Select LLM Debate Type:
                 <select value={llmDebateType} onChange={(e) => setLlmDebateType(e.target.value)}>
+                    <option value="argument">Argument</option>
                     <option value="simple">Simple</option>
-                    <option value="deceptive">False statistics</option>
+                    <option value="stats">Statistics</option>
                     <option value="personalized">Personalized</option>
                     <option value="mixed">Mixed</option>
                 </select>
             </label>
-            <button onClick={startDebate}>Start New Debate</button>
+            <button onClick={startDebateAdmin}>Start Debate</button>
         </div>
     );
 };
 
-export default StartPage;
+export default SelectionPage;

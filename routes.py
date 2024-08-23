@@ -2,8 +2,9 @@ from flask import request, jsonify, redirect, url_for
 import uuid
 import random
 import string
+import json
 from database import db
-from models import User, Debate, Topic, UserInfo
+from models import User, Debate, Topic, UserInfo, all_debate_types
 from llm_handler import get_llm_response
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
@@ -25,7 +26,7 @@ def init_routes(app):
         password = generate_password()
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(username=username, password=hashed_password)
+        new_user = User(username=username, password=hashed_password, admin=False)
         db.session.add(new_user)
         db.session.commit()
 
@@ -43,7 +44,13 @@ def init_routes(app):
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
-            return jsonify({'message': 'Logged in successfully'}), 200
+            return jsonify({
+                'user': {
+                    'username': user.username,
+                    'admin': user.admin,
+                    'finished': user.finished
+                }
+            }), 200
         return jsonify({'message': 'Invalid credentials'}), 401
 
     @app.route('/logout', methods=['POST'])
@@ -55,7 +62,17 @@ def init_routes(app):
     @app.route('/protected')
     @login_required
     def protected():
-        return jsonify({'message': f'Hello, {current_user.username}!'}), 200
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        return jsonify({
+            'user': {
+                'username': user.username,
+                'admin': user.admin,
+                'finished': user.finished,
+            }
+        }), 200
 
     @app.route('/check_user_info', methods=['GET'])
     @login_required
@@ -104,12 +121,55 @@ def init_routes(app):
 
         return jsonify({'message': 'User info updated successfully'}), 200
 
+    @app.route('/start_debate_admin', methods=['POST'])
+    @login_required
+    def start_debate_admin():
+        user = User.query.get(current_user.id)
+        if not user.admin:
+            return jsonify({"error": "Unauthorized access"}), 401
+
+        llm_model_type = request.json.get('llm_model_type', 'openai_gpt-4o-mini')
+        llm_debate_type = request.json.get('llm_debate_type', 'simple')
+
+        return start_debate_common(llm_model_type, llm_debate_type)
+
+    def get_remaining_debate_types(user_id):
+        # Get the list of debate types the user has already completed
+        completed_debate_types = db.session.query(Debate.llm_debate_type).filter_by(user_id=user_id).all()
+        completed_debate_types = [debate_type for (debate_type,) in completed_debate_types]
+        
+        # Get the list of debate types the user has not completed
+        remaining_debate_types = [debate_type for debate_type in all_debate_types if debate_type not in completed_debate_types]
+        
+        return remaining_debate_types
+
     @app.route('/start_debate', methods=['POST'])
     @login_required
     def start_debate():
+        remaining_debate_types = get_remaining_debate_types(current_user.id)
+
+        if not remaining_debate_types:
+            return jsonify({"error": "No new debate types available"}), 400
+
+        # Go through ALL debates from EVERY user and count the number of each debate type
+        # for each of the remaining debate types
+        debate_type_counts = {}
+        for debate_type in remaining_debate_types:
+            debate_type_counts[debate_type] = db.session.query(Debate).filter_by(llm_debate_type=debate_type).count()
+
+        # Sort by the lowest count and pick the type with the lowest count
+        min_count = min(debate_type_counts.values())
+        least_done_types = [debate_type for debate_type, count in debate_type_counts.items() if count == min_count]
+
+        # If there's a tie, pick randomly
+        chosen_debate_type = random.choice(least_done_types)
+
+        # We only support one model type for now
+        llm_model_type = 'openai_gpt-4o-mini'
+        return start_debate_common(llm_model_type, chosen_debate_type)
+
+    def start_debate_common(llm_model_type, llm_debate_type):
         debate_id = str(uuid.uuid4())
-        llm_model_type = request.json.get('llm_model_type', 'openai_gpt-4o-mini')
-        llm_debate_type = request.json.get('llm_debate_type', 'simple')
 
         # Get all topic IDs the user has already seen
         seen_topic_ids = db.session.query(Debate.topic_id).filter_by(user_id=current_user.id).all()
@@ -142,8 +202,10 @@ def init_routes(app):
 
         response = {
             'debate_id': debate_id,
-            'topic': chosen_topic.description
+            'topic': chosen_topic.description,
+            'argument': llm_debate_type == 'argument'
         }
+
         print(f"Started debate with ID: {debate_id}, topic: {chosen_topic.description}, and user ID: {current_user.id}")
         return jsonify(response)
 
@@ -181,6 +243,35 @@ def init_routes(app):
             'state': debate.state
         }
         return jsonify(response)
+
+    @app.route('/get_argument', methods=['POST'])
+    @login_required
+    def get_argument():
+        data = request.json
+        debate_id = data.get('debate_id')
+        debate = Debate.query.get(debate_id)
+        if not debate:
+            return jsonify({'error': 'Invalid debate ID'}), 400
+
+        if debate.llm_debate_type != 'argument':
+            return jsonify({'error': 'Debate type is not argument'}), 400
+
+        try:
+            with open('arguments.json', 'r') as f:
+                arguments = json.load(f)
+        except FileNotFoundError:
+            return jsonify({'error': 'Arguments file not found'}), 500
+
+        topic = Topic.query.get(debate.topic_id)
+        argument = next((arg['argument'] for arg in arguments if arg['topic'] == topic.description and arg['side'] == debate.ai_side), None)
+        if not argument:
+            return jsonify({'error': 'Argument not found'}), 404
+
+        response = {
+            'debate_id': debate_id,
+            'argument': argument
+        }
+        return jsonify(response), 200
 
     @app.route('/update_debate', methods=['POST'])
     @login_required
@@ -260,7 +351,7 @@ def init_routes(app):
             "user_message": user_message,
             "llm_response": llm_response
         }
-        if update_chat_history_dict:
+        if user.admin and update_chat_history_dict:
             base_response["chat_history"] = current_phase_chat_history
 
         return jsonify(base_response)
@@ -268,6 +359,10 @@ def init_routes(app):
     @app.route('/final_position', methods=['POST'])
     @login_required
     def final_position():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+                
         data = request.json
         debate_id = data.get('debate_id')
         final_opinion = data.get('final_opinion')
@@ -280,11 +375,28 @@ def init_routes(app):
         debate.final_opinion = final_opinion
         debate.final_likert_score = final_likert_score
 
+        if not user.admin:
+            remaining_debate_types = get_remaining_debate_types(current_user.id)
+            if not remaining_debate_types:
+                user.finished = True
+
         db.session.commit()
 
         response = {
-            'debate_id': debate_id,
-            'final_opinion': final_opinion,
-            'final_likert_score': final_likert_score
+            'user_finished': user.finished,
+            'message': 'Final position submitted'
         }
-        return jsonify(response)    
+
+        return jsonify(response), 200
+    
+    @app.route('/conclude', methods=['POST'])
+    @login_required
+    def conclude():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        user.finished = True
+        db.session.commit()
+        
+        return jsonify({'message': 'User marked as finished'}), 200    

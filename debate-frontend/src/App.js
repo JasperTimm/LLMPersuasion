@@ -1,6 +1,5 @@
-// export default App;
 import React, { useState, useEffect } from 'react';
-import HomePage from './components/HomePage';
+import MainPage from './components/MainPage';
 import Login from './components/Login';
 import UserInfoPage from './components/UserInfoPage';
 import NewUserPage from './components/NewUserPage';
@@ -9,21 +8,20 @@ import { axiosInstance } from './config';
 import './App.css';
 
 const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userInfoCompleted, setUserInfoCompleted] = useState(false);
     const [newUser, setNewUser] = useState(false);
     const [debate, setDebate] = useState(null);
+    const [user, setUser] = useState(null);
     const [debateHistory, setDebateHistory] = useState([]);
     const [chatHistory, setChatHistory] = useState({});
-    const [profileUsername, setProfileUsername] = useState('');
 
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                await axiosInstance.get(`/protected`);
-                setIsAuthenticated(true);
+                const response = await axiosInstance.get(`/protected`);
+                setUser(response.data.user);
             } catch (error) {
-                setIsAuthenticated(false);
+                setUser(null);
             }
         };
         checkAuth();
@@ -39,10 +37,19 @@ const App = () => {
             }
         };
 
-        if (isAuthenticated) {
+        if (user) {
             checkUserInfo();
         }
-    }, [isAuthenticated]);
+    }, [user]);
+
+    const startDebate = async () => {
+        try {
+            const response = await axiosInstance.post(`/start_debate`);
+            setDebate(response.data);
+        } catch (error) {
+            console.error("Error starting debate:", error);
+        }
+    };
 
     const updateDebate = (data) => {
         setDebateHistory([...debateHistory, { role: 'User', message: data.user_message }, { role: 'AI', message: data.llm_response }]);
@@ -57,11 +64,11 @@ const App = () => {
         setChatHistory([]);
     };
 
-    if (!isAuthenticated) {
+    if (!user) {
         if (newUser) {
             return <NewUserPage setNewUser={setNewUser}/>;
         } else {
-            return <Login setIsAuthenticated={setIsAuthenticated} setNewUser={setNewUser} setProfileUsername={setProfileUsername} />;
+            return <Login setUser={setUser} setNewUser={setNewUser} />;
         }
     }
 
@@ -70,20 +77,22 @@ const App = () => {
         content = <UserInfoPage setUserInfoCompleted={setUserInfoCompleted} />;
     } else {
         content = (
-            <HomePage
+            <MainPage
                 debate={debate}
+                startDebate={startDebate}
                 setDebate={setDebate}
                 debateHistory={debateHistory}
                 chatHistory={chatHistory}
                 updateDebate={updateDebate}
-                resetDebate={resetDebate}
+                user={user}
+                setUser={setUser}
             />
         );
     }
 
     return (
         <div>
-            <Profile profileUsername={profileUsername} setIsAuthenticated={setIsAuthenticated} />
+            <Profile user={user} setUser={setUser} resetDebate={resetDebate} />
             {content}
         </div>
     );
