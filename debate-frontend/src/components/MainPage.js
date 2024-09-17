@@ -14,6 +14,12 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
     return (
         <div className='main-page-container'>
             <h1>Debate Platform</h1>
+            {   debate && debate.topic ? (
+                <div className="debate-topic">
+                    <span className="debate-topic-label">Debate Topic:</span>
+                    <span>{debate.topic}</span>
+                </div>
+            ) : null}
             {   !debate && user.admin ? (
                 <SelectionPage setDebate={setDebate} />
             ) : !debate ? (
