@@ -20,15 +20,16 @@ function ContinuePage({ startDebate, user, setUser, resetDebate }) {
     };
 
     const handleSubmit = () => {
-        resetDebate();
         switch (selectedOption) {
             case 'continueNow':
+                resetDebate();
                 startDebate();
                 break;
             case 'continueLater':
                 setShowContinueLaterMessage(true);
                 break;
             case 'finishStudy':
+                resetDebate();
                 finishStudy();
                 break;
             default:

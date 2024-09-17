@@ -24,12 +24,6 @@ const ArgumentPage = ({ debate, setDebate }) => {
 
     return (
         <div className='container'>
-            <div className="debate-info">
-                <div className="debate-topic">
-                    <span className="debate-topic-label">Debate Topic:</span>
-                    <span>{debate.topic}</span>
-                </div>
-            </div>
             <div className="argument-container">
                 <h2>Please read the following argument carefully:</h2>
                 <div className="argument-text">

@@ -34,10 +34,10 @@ const LikertScalePage = ({ debate, setDebate }) => {
 
     return (
         <div className='container'>
-            <div className="debate-topic">
-                <span className="debate-topic-label">Debate Topic:</span>
-                <span>{debate.topic}</span>
-            </div>
+            <h2 className="debate-title">Initial Position</h2>
+            <h3>
+                Consider the debate topic above and rate your initial position on the scale below.
+            </h3>
             <div className="range-container">
                 <input
                     type="range"

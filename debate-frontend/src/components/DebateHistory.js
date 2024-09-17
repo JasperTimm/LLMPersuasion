@@ -12,7 +12,6 @@ const DebateHistory = ({ debateHistory }) => {
 
     return (
         <div ref={historyRef} className="debate-history-container">
-            <h2>Debate History</h2>
             <ul className="debate-history-list">
                 {debateHistory.map((entry, index) => (
                     <li key={index} className="debate-history-item">

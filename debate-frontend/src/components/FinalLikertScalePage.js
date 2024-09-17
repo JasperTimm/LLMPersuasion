@@ -41,11 +41,8 @@ const FinalLikertScalePage = ({ debate, setDebate, user, setUser }) => {
 
     return (
         <div className='container'>
-            <div className="debate-topic">
-                <span className="debate-topic-label">Debate Topic:</span>
-                <span>{debate.topic}</span>
-            </div>            
-            <p>Rate your opinion on a scale of 1-7:</p>
+            <h2 className="debate-title">Final Position</h2>
+            <h3>Rate your opinion on a scale of 1-7:</h3>
             <div className="range-container">
                 <input
                     type="range"

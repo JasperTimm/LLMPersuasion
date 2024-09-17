@@ -61,13 +61,15 @@ function DemographicsPage({ setDemographics }) {
     return (
         <div className="container">
             <h2>Demographics</h2>
+            <p>Please fill out the form below to help us understand more about you.</p>
             <input
                 type="number"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 placeholder="Age"
             />
-            <select value={gender} onChange={(e) => setGender(e.target.value)}>
+            <select style={{ color: gender === "" ? "#a9a9a9" : "#000" }}
+            value={gender} onChange={(e) => setGender(e.target.value)}>
                 <option value="" disabled>Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -79,12 +81,20 @@ function DemographicsPage({ setDemographics }) {
                 onChange={(e) => setProfession(e.target.value)}
                 placeholder="Profession"
             />
-            <input
-                type="text"
-                value={educationLevel}
-                onChange={(e) => setEducationLevel(e.target.value)}
-                placeholder="Education Level"
-            />
+            <select style={{ color: educationLevel === "" ? "#a9a9a9" : "#000" }}
+            value={educationLevel} onChange={(e) => setEducationLevel(e.target.value)}>
+                <option value="" disabled>Select Education Level</option>
+                <option value="No Formal Education">No Formal Education</option>
+                <option value="Primary School">Primary School</option>
+                <option value="High School Diploma / GED">High School Diploma / GED</option>
+                <option value="Some College / No Degree">Some College / No Degree</option>
+                <option value="Associate's Degree">Associate's Degree</option>
+                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                <option value="Master's Degree">Master's Degree</option>
+                <option value="Doctorate / Ph.D.">Doctorate / Ph.D.</option>
+                <option value="Professional Degree (e.g., JD, MD)">Professional Degree (e.g., JD, MD)</option>
+                <option value="Vocational / Technical Training">Vocational / Technical Training</option>
+            </select>            
             <select
             value={countryMostTime}
             onChange={(e) => setCountryMostTime(e.target.value)}

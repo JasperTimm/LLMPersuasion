@@ -60,16 +60,16 @@ function PersonalityTraitsPage({ demographics, setUserInfoCompleted }) {
                 </p>
                 <p>
                     <strong>Rating Scale:</strong>
-                    <ul>
-                        <li>1 = Disagree strongly</li>
-                        <li>2 = Disagree moderately</li>
-                        <li>3 = Disagree a little</li>
-                        <li>4 = Neither agree nor disagree</li>
-                        <li>5 = Agree a little</li>
-                        <li>6 = Agree moderately</li>
-                        <li>7 = Agree strongly</li>
-                    </ul>
                 </p>
+                <ul>
+                    <li>1 = Disagree strongly</li>
+                    <li>2 = Disagree moderately</li>
+                    <li>3 = Disagree a little</li>
+                    <li>4 = Neither agree nor disagree</li>
+                    <li>5 = Agree a little</li>
+                    <li>6 = Agree moderately</li>
+                    <li>7 = Agree strongly</li>
+                </ul>
                 <p><strong>I see myself as:</strong></p>
             </div>
             <input

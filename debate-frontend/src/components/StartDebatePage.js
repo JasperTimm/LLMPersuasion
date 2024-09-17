@@ -17,8 +17,13 @@ const StartDebatePage = ({ startDebate }) => {
                 </li>
                 <hr className="debate-step-separator" />
                 <li className="debate-step">
-                    <strong className="debate-step-title">Debate the Topic:</strong> 
-                    Engage in a structured debate with the LLM. You'll go through an Introduction phase, a Rebuttal phase, and a Conclusion phase to explore the topic in depth.
+                    <p>
+                        <strong className="debate-step-title">Debate the Topic:</strong> 
+                        Engage in a structured debate with the LLM. You'll go through an Introduction phase, a Rebuttal phase, and a Conclusion phase to explore the topic in depth.
+                    </p>
+                    <p>
+                        In some cases, instead of a debate you may simply be presented with an argument to consider.
+                    </p>
                 </li>
                 <hr className="debate-step-separator" />
                 <li className="debate-step">
