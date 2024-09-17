@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { axiosInstance } from '../config';
 import '../styles/NewUserPage.css';
 
@@ -8,13 +8,23 @@ const NewUserPage = ({ setNewUser }) => {
     const [responseMessage, setResponseMessage] = useState('');
     const [loginDetails, setLoginDetails] = useState({ username: '', password: '' });
     const [userCreated, setUserCreated] = useState(false);
+    const consentContainerRef = useRef(null);
 
-    const handleScroll = (e) => {
-        const { scrollTop, scrollHeight, clientHeight } = e.target;
-        if (scrollTop + clientHeight >= scrollHeight - 1) {
-            setIsScrolledToBottom(true);
-        }
-    };
+    useEffect(() => {
+        const handleScroll = () => {
+            const container = consentContainerRef.current;
+            if (container.scrollHeight - container.scrollTop <= container.clientHeight + 1) {
+                setIsScrolledToBottom(true);
+            }
+        };
+
+        const container = consentContainerRef.current;
+        container.addEventListener('scroll', handleScroll);
+
+        return () => {
+            container.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
 
     const handleSubmit = async () => {
         try {
@@ -51,7 +61,7 @@ const NewUserPage = ({ setNewUser }) => {
             <h1>Welcome to the Debate Platform</h1>
             <p>Thank you for taking the time to participate in this study. Your input is invaluable to us and we appreciate your participation!</p>
             <p>Please read the consent form below and confirm your agreement to proceed.</p>
-            <div className="consent-container" onScroll={handleScroll}>
+            <div className="consent-container" ref={consentContainerRef}>
                 <h1>Consent Form</h1>
 
                 <h2>1. Title of Research</h2>
