@@ -18,6 +18,7 @@ const App = () => {
     const [debateHistory, setDebateHistory] = useState([]);
     const [chatHistory, setChatHistory] = useState({});
     const [endEarly, setEndEarly] = useState(false);
+    const [errorStartDebate, setErrorStartDebate] = useState('');
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -50,8 +51,10 @@ const App = () => {
         try {
             const response = await axiosInstance.post(`/start_debate`);
             setDebate(response.data);
+            setErrorStartDebate(''); // Clear any previous error message
         } catch (error) {
             console.error("Error starting debate:", error);
+            setErrorStartDebate('There was an issue starting the debate. Please try logging out and back in again. If the issue persists, contact support.');
         }
     };
 
@@ -66,6 +69,7 @@ const App = () => {
         setDebate(null);
         setDebateHistory([]);
         setChatHistory([]);
+        setErrorStartDebate('');
     };
 
     if (!user) {
@@ -98,6 +102,7 @@ const App = () => {
                     user={user}
                     setUser={setUser}
                     resetDebate={resetDebate}
+                    errorStartDebate={errorStartDebate}
                 />
             )}
         </div>

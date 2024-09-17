@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/StartDebatePage.css';
 
-const StartDebatePage = ({ startDebate }) => {
+const StartDebatePage = ({ startDebate, errorStartDebate }) => {
     return (
         <div className="container">
             <h2 className="debate-title">How the Debate Process Works</h2>
@@ -37,6 +37,11 @@ const StartDebatePage = ({ startDebate }) => {
                 </li>
             </ul>
             <button className="debate-start-button" onClick={startDebate}>Start Debate</button>
+            {errorStartDebate && (
+                <div className="error-message">
+                    {errorStartDebate}
+                </div>
+            )}
         </div>
     );    
 };

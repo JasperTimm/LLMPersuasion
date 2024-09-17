@@ -10,7 +10,7 @@ import ContinuePage from './ContinuePage';
 import ArgumentPage from './ArgumentPage';
 import '../styles/MainPage.css';
 
-const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, updateDebate, user, setUser, resetDebate }) => {
+const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, updateDebate, user, setUser, resetDebate, errorStartDebate }) => {
     return (
         <div className='main-page-container'>
             <h1>Debate Platform</h1>
@@ -23,7 +23,7 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
             {   !debate && user.admin ? (
                 <SelectionPage setDebate={setDebate} />
             ) : !debate ? (
-                <StartDebatePage startDebate={startDebate} />
+                <StartDebatePage startDebate={startDebate} errorStartDebate={errorStartDebate} />
             ) : !debate.initial_opinion ? (
                 <OpinionPage debate={debate} setDebate={setDebate} />
             ) : !debate.initial_likert_score ? (
