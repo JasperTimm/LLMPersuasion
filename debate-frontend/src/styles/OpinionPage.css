@@ -22,3 +22,7 @@
     display: block;
     margin: 20px auto;
   }
+
+  .initial-opinion-diagram {
+    max-width: 1000px;
+  }
