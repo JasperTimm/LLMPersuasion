@@ -23,6 +23,27 @@
     margin: 20px auto;
   }
 
-  .initial-opinion-diagram {
-    max-width: 1000px;
+  .opinion-page .content-wrapper {
+    display: flex;
+    align-items: stretch;
   }
+  
+  .flow-diagram {
+    width: 100%;
+    height: auto; /* Maintain aspect ratio */
+    object-fit: contain; /* Ensure the image fits within the container without stretching */    
+    max-width: 350px; /* Adjust as needed */
+    margin-right: 20px; /* Adjust spacing as needed */
+    padding: 20px; /* Adjust padding as needed */
+    background-color: white; /* White background for the margin */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow for better visibility */
+    border-radius: 8px;
+  }
+  
+  .content-wrapper .container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 50px;
+  }
+  

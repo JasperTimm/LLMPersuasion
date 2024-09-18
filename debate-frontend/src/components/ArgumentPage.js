@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { axiosInstance } from '../config';
 import '../styles/ArgumentPage.css';
+import ArgumentDiagram from '../assets/images/argument.png';
 
 const ArgumentPage = ({ debate, setDebate }) => {
     const [argument, setArgument] = useState('');
@@ -23,14 +24,17 @@ const ArgumentPage = ({ debate, setDebate }) => {
     };
 
     return (
-        <div className='container'>
-            <div className="argument-container">
-                <h2>Please read the following argument carefully:</h2>
-                <div className="argument-text">
-                    {argument}
+        <div className="content-wrapper">
+            <img src={ArgumentDiagram} alt="Argument Diagram" className="flow-diagram" />
+            <div className='container'>
+                <div className="argument-container">
+                    <h2>Please read the following argument carefully:</h2>
+                    <div className="argument-text">
+                        {argument}
+                    </div>
                 </div>
+                <button className="continue-button" onClick={continueToFinalOpinion}>Continue</button>
             </div>
-            <button className="continue-button" onClick={continueToFinalOpinion}>Continue</button>
         </div>
     );
 };

@@ -23,7 +23,7 @@ function ConclusionPage({ user, setUser }) {
     };
 
     return (
-        <div className="container">
+        <div className="container" style={{ margin: '50px auto' }}>
             <h1>Thank You for Your Participation!</h1>
             <div className="consent-container" onScroll={handleScroll}>
                 <p>We deeply appreciate your time and effort in participating in our study. Your contribution is invaluable to advancing our understanding of how Large Language Models (LLMs) can influence opinions. Below, we’ve outlined important information that you should consider before you leave.</p>

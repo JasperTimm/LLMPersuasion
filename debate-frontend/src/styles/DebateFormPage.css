@@ -29,7 +29,7 @@
 
 /* Button */
 button {
-    padding: 10px 20px;
+    /* padding: 10px 20px; */
     background-color: #007bff; /* Accent color */
     border: none;
     color: white;
@@ -45,7 +45,7 @@ button {
 /* Debate Info Styling */
 .debate-info {
     max-width: 1200px; /* Decrease the width slightly */
-    margin: 10px auto; /* Reduce the margin */
+    /* margin: 10px auto; */
     padding: 15px; /* Reduce padding */
     background-color: #f9f9f9; /* Keep the background subtle */
     border-radius: 8px;
@@ -67,10 +67,18 @@ button {
     font-size: 1em; /* Smaller */
     font-weight: normal;
     color: #555;
-    margin-top: 5px;
+    /* margin-top: 5px; */
 }
 
 .debate-side, .debate-initial-opinion {
     flex: 1;
     margin-right: 20px; /* Space between the two sections */
 }
+
+.debate-wrapper {
+    width: 100%;
+}
+
+.debate-content-wrapper {
+    display: flex;
+  }
