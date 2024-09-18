@@ -60,6 +60,6 @@ button:hover {
 }
 
 .container {
-  margin-top: 0px; /* Global margin-top for all containers */
-  margin-bottom: 0px; /* Global margin-bottom for all containers */
+  margin-top: 50px; /* Global margin-top for all containers */
+  margin-bottom: 50px; /* Global margin-bottom for all containers */
 }

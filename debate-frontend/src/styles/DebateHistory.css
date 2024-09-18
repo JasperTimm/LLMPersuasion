@@ -7,3 +7,8 @@
 .debate-history-item {
     margin-bottom: 10px; /* Add space between items */
 }
+
+.debate-history-container {
+    height: 400px; /* or any fixed height */
+    overflow-y: auto;
+}
