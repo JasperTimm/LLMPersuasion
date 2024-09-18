@@ -18,7 +18,8 @@
 .debate-topic {
     border: none; /* Remove the border */
     padding: 20px;
-    margin: 20px 0;
+    max-width: 1160px;
+    width: 100%;
     background-color: #f0f0f0; /* Light background to highlight topic */
     font-size: 1.8em; /* Larger font for topic */
     font-weight: bold;

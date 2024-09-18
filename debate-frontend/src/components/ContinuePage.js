@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { axiosInstance } from '../config';
 import '../styles/ContinuePage.css';
+import ConcludeDiagram from '../assets/images/conclude.png';
 
 function ContinuePage({ startDebate, user, setUser, resetDebate }) {
     const [selectedOption, setSelectedOption] = useState(null);
@@ -46,7 +47,10 @@ function ContinuePage({ startDebate, user, setUser, resetDebate }) {
                 <p>You can now leave this page by logging out in the top right.</p>
             </div>
         ) : (
-            <div className="continue-container">
+            
+        <div className="content-wrapper">
+            <img src={ConcludeDiagram} alt="Conclude Diagram" className="flow-diagram" />
+            <div className="continue-container container">
                 <h2 className="continue-title">What would you like to do next?</h2>
                 <p className="continue-description">Please select one of the options below and click submit to proceed.</p>
 
@@ -96,6 +100,7 @@ function ContinuePage({ startDebate, user, setUser, resetDebate }) {
                 </div>
                 <button className="submit-button" onClick={handleSubmit}>Submit</button>            
             </div>
+        </div>
         )}
         </>
     );
