@@ -4,7 +4,7 @@ import random
 import string
 import json
 from database import db
-from models import User, Debate, Topic, UserInfo, all_debate_types, CopyPasteEvent
+from models import User, Debate, Topic, UserInfo, all_debate_types, CopyPasteEvent, DebateLog
 from llm_handler import get_llm_response
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
@@ -200,6 +200,14 @@ def init_routes(app):
             llm_debate_type=llm_debate_type
         )
         db.session.add(new_debate)
+
+        # Log the debate start
+        debate_log = DebateLog(
+            debate_id=debate_id,
+            action='start'
+        )
+        db.session.add(debate_log)
+
         db.session.commit()
 
         response = {
@@ -235,6 +243,13 @@ def init_routes(app):
         debate.ai_side = ai_side
         debate.initial_opinion = initial_opinion
         debate.initial_likert_score = initial_likert_score
+
+        # Log the initial position
+        debate_log = DebateLog(
+            debate_id=debate_id,
+            action='initial_position'
+        )
+        db.session.add(debate_log)
 
         db.session.commit()
         
@@ -335,7 +350,14 @@ def init_routes(app):
             debate.chat_history_dict = update_chat_history_dict
             print(f"Updated chat history: {debate.chat_history_dict}")
             current_phase_chat_history = update_chat_history_dict.get(debate.state, {})
-            
+
+        # Log the debate state
+        debate_log = DebateLog(
+            debate_id=debate_id,
+            action=debate.state
+        )
+        db.session.add(debate_log)
+
         # Update debate state (simple state machine for demo purposes)
         if debate.state == 'intro':
             debate.state = 'rebuttal'
@@ -381,6 +403,13 @@ def init_routes(app):
             remaining_debate_types = get_remaining_debate_types(current_user.id)
             if not remaining_debate_types:
                 user.finished = True
+
+        # Log the final position
+        debate_log = DebateLog(
+            debate_id=debate_id,
+            action='final_position'
+        )
+        db.session.add(debate_log)
 
         db.session.commit()
 
