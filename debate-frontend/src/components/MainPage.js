@@ -47,7 +47,7 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
             document.removeEventListener('paste', handlePaste);
             document.removeEventListener('copy', handleCopy);
         };
-    }, [currentPage]);
+    }, [currentPage, debate]);
 
     useEffect(() => {
         if (!debate && user.admin) {
