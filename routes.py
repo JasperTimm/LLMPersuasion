@@ -4,7 +4,7 @@ import random
 import string
 import json
 from database import db
-from models import User, Debate, Topic, UserInfo, all_debate_types
+from models import User, Debate, Topic, UserInfo, all_debate_types, CopyPasteEvent
 from llm_handler import get_llm_response
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
@@ -416,4 +416,18 @@ def init_routes(app):
         user.concluded = True
         db.session.commit()
         
-        return jsonify({'message': 'User marked as concluded'}), 200      
+        return jsonify({'message': 'User marked as concluded'}), 200
+    
+    @app.route('/log_event', methods=['POST'])
+    @login_required
+    def log_event():
+        data = request.json
+        event = CopyPasteEvent(
+            type=data.get('type'),
+            data=data.get('data'),
+            current_page=data.get('currentPage'),
+            user_id=current_user.id
+        )
+        db.session.add(event)
+        db.session.commit()
+        return '', 201

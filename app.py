@@ -8,6 +8,7 @@ from flask_login import LoginManager
 from database import db, init_db
 from models import User
 from routes import init_routes
+from flask_migrate import Migrate
 
 class PrefixMiddleware(object):
     def __init__(self, app, prefix=''):
@@ -24,6 +25,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///debate_website.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
 # Enable CORS
 CORS(app, supports_credentials=True)

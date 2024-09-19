@@ -43,6 +43,14 @@ class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String, nullable=False)
 
+class CopyPasteEvent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(10), nullable=False)
+    data = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+    current_page = db.Column(db.String(255), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 class Debate(db.Model):
     id = db.Column(db.String, primary_key=True)
     state = db.Column(db.String, nullable=False, default='intro')
