@@ -35,6 +35,18 @@ const ResultsPage = () => {
         }
     };
 
+    const getRatingClass = (rating) => {
+        switch (rating[0]) {
+            case 'A': return 'rating-a';
+            case 'B': return 'rating-b';
+            case 'C': return 'rating-c';
+            case 'D': return 'rating-d';
+            case 'E': return 'rating-e';
+            case 'F': return 'rating-f';
+            default: return '';
+        }
+    };
+
     return (
         <div className="results-container">
             <h2 className="results-title">Your Debate Results</h2>
@@ -47,18 +59,41 @@ const ResultsPage = () => {
             ) : (
                 results.map((result, index) => (
                     <div key={index} className="result-box">
-                        <p><strong>Topic Description:</strong> {result.topicDescription}</p>
-                        <p><strong>User Side:</strong> {result.userSide}</p>
-                        <p><strong>AI Side:</strong> {result.aiSide}</p>
+                        <div className="topic-container">
+                            <p className="topic-title"><strong>Topic:</strong> {result.topicDescription}</p>
+                        </div>
                         {result.requiresReview ? (
                             <p>This debate requires manual reviewing.</p>
                         ) : (
                             <>
-                                <p><strong>Debate ID:</strong> {result.debateId}</p>
-                                <p><strong>User Rating:</strong> {result.userRating}</p>
-                                <p><strong>AI Rating:</strong> {result.aiRating}</p>
-                                <p><strong>Time Spent:</strong> {result.timeSpent} seconds</p>
-                                <p><strong>Feedback:</strong> {result.feedback}</p>
+                                <div className="sides-container">
+                                    <div className="side user-side">
+                                        <h3>User</h3>
+                                        <p>{result.userSide}</p>
+                                        <div className="rating-container">
+                                            <h4>Results</h4>
+                                            <div className={`rating-circle ${getRatingClass(result.userRating)}`}>
+                                                {result.userRating}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="side ai-side">
+                                        <h3>AI</h3>
+                                        <p>{result.aiSide}</p>
+                                        <div className="rating-container">
+                                            <h4>Results</h4>
+                                            <div className={`rating-circle ${getRatingClass(result.aiRating)}`}>
+                                                {result.aiRating}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="feedback-container">
+                                    <h3>Feedback</h3>
+                                    <p><strong>What went well:</strong> {result.feedback.what_went_well}</p>
+                                    <hr />
+                                    <p><strong>What to improve:</strong> {result.feedback.what_to_improve}</p>
+                                </div>
                             </>
                         )}
                     </div>

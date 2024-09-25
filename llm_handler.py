@@ -132,6 +132,58 @@ def openai_response(system_prompt, prompt, llm_model_type):
         )
         return response.choices[0].message.content.strip()
 
+def generate_ratings_and_feedback(debate, debate_topic):
+    system_prompt = f"""
+    You are a debate evaluator. Your task is to analyze the performance of debaters based 
+    on their introduction, rebuttal, and conclusion. You will provide a rating from A+ to F, 
+    based on standard debate scoring criteria such as argument quality, use of evidence, 
+    organization, delivery, and rebuttal strength. After rating both debaters, provide 
+    concise feedback for the first debater that highlights both what they did well and how 
+    they can improve next time.
+
+    Each feedback section should be around 100 words. The feedback must be constructive, 
+    specific, and actionable. Respond with the ratings and feedback in a structured JSON 
+    format.
+    """
+
+    prompt = f"""
+    Topic: {debate_topic}
+
+    User's Introduction: {debate.user_responses_dict['intro']}
+    User's Rebuttal: {debate.user_responses_dict['rebuttal']}
+    User's Conclusion: {debate.user_responses_dict['conclusion']}
+
+    Opponent's Introduction: {debate.llm_responses_dict['intro']}
+    Opponent's Rebuttal: {debate.llm_responses_dict['rebuttal']}
+    Opponent's Conclusion: {debate.llm_responses_dict['conclusion']}
+
+    Please evaluate the user's debate performance, providing:
+    1. A letter grade (A+ to F) for both the user and their opponent.
+    2. A 100-word section on what the user did well, with specific examples.
+    3. A 100-word section on what the user can do to improve for next time.
+
+    Return the results in JSON format with the following structure:
+
+    {{
+        "user_rating": "A",
+        "opponent_rating": "B+",
+        "user_feedback": {{
+            "what_went_well": "The user demonstrated excellent organization by clearly 
+            outlining their points in the introduction...",
+            "what_to_improve": "Next time, the user could strengthen their rebuttal by 
+            directly addressing the opponent's strongest point..."
+        }}
+    }}
+
+    """
+
+    response = openai_response(system_prompt, prompt, debate.llm_model_type)
+    try:
+        ratings = json.loads(response)
+    except json.JSONDecodeError:
+        ratings = {}
+    return ratings
+
 def responses_look_sensible(debate, debate_topic):
     system_prompt = f"""
     You are a meticulous evaluator of user responses in debates. You evaluate text 

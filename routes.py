@@ -5,7 +5,7 @@ import string
 import json
 from database import db
 from models import User, Debate, Topic, UserInfo, all_debate_types, CopyPasteEvent, DebateLog, DebateResult
-from llm_handler import get_llm_response, responses_look_sensible
+from llm_handler import get_llm_response, responses_look_sensible, generate_ratings_and_feedback
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -502,7 +502,7 @@ def init_routes(app):
             'userRating': result.user_rating,
             'aiRating': result.ai_rating,
             'timeSpent': result.time_spent,
-            'feedback': result.feedback,
+            'feedback': result.feedback_dict,
             'requiresReview': result.requires_review,
             'topicDescription': result.topic_description,
             'userSide': result.user_side,
@@ -537,14 +537,12 @@ def init_routes(app):
                     user_rating='',
                     ai_rating='',
                     time_spent=0,
-                    feedback='',
+                    feedback_dict={},
                     requires_review=True,
                     review_reasons_list=['UNFINISHED']
                 )
                 db.session.add(result)
                 continue
-
-            print(f"Generating results for debate with ID: {debate_id}")
 
             # Check for suspicious activity
             start_time = DebateLog.query.filter_by(debate_id=debate_id, action='start').first().timestamp
@@ -581,7 +579,7 @@ def init_routes(app):
                     user_rating='',
                     ai_rating='',
                     time_spent=time_spent,
-                    feedback='',
+                    feedback_dict={},
                     requires_review=True,
                     review_reasons_list=review_reasons,
                     extended_reasons_list=extended_reasons
@@ -590,16 +588,16 @@ def init_routes(app):
                 continue
             
             # Otherwise, continue to generate results
-            user_rating = generate_rating(debate.user_responses_dict)
-            ai_rating = generate_rating(debate.llm_responses_dict)
-            feedback = generate_feedback(debate)
+            ratings = generate_ratings_and_feedback(debate, topic.description)
+
+            print(f"Ratings: {ratings}")
 
             result = DebateResult(
                 debate_id=debate_id,
-                user_rating=user_rating,
-                ai_rating=ai_rating,
+                user_rating=ratings['user_rating'],
+                ai_rating=ratings['opponent_rating'],
                 time_spent=time_spent,
-                feedback=feedback,
+                feedback_dict=ratings['user_feedback'],
                 requires_review=False
             )
             db.session.add(result)
@@ -611,12 +609,4 @@ def init_routes(app):
             # Placeholder for sending results to the service
             pass
 
-        return 'Results generated', 200
-
-def generate_rating(responses):
-    # Placeholder function to generate a rating from A-F
-    return 'A'
-
-def generate_feedback(debate):
-    # Placeholder function to generate feedback
-    return 'Great job! Keep it up.'            
+        return 'Results generated', 200            

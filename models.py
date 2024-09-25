@@ -66,10 +66,18 @@ class DebateResult(db.Model):
     user_rating = db.Column(db.String, nullable=False)
     ai_rating = db.Column(db.String, nullable=False)
     time_spent = db.Column(db.Integer, nullable=False)  # Time spent in seconds
-    feedback = db.Column(db.Text, nullable=False)
+    feedback = db.Column(db.Text, nullable=False, default='{}')
     requires_review = db.Column(db.Boolean, default=False)
     review_reasons = db.Column(db.Text, nullable=True, default='[]')  # List of reasons for review as JSON string
     extended_reasons = db.Column(db.Text, nullable=True, default='[]')  # List of JSON objects for extended reasons
+
+    @property
+    def feedback_dict(self):
+        return json.loads(self.feedback)
+
+    @feedback_dict.setter
+    def feedback_dict(self, value):
+        self.feedback = json.dumps(value)
 
     @property
     def review_reasons_list(self):
