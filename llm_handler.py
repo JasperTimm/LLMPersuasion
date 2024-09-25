@@ -1,6 +1,7 @@
 from openai import OpenAI
 import xml.etree.ElementTree as ET
 from models import UserInfo
+import json
 
 client = OpenAI()
 
@@ -130,6 +131,53 @@ def openai_response(system_prompt, prompt, llm_model_type):
             model=model_name,
         )
         return response.choices[0].message.content.strip()
+
+def responses_look_sensible(debate, debate_topic):
+    system_prompt = f"""
+    You are a meticulous evaluator of user responses in debates. You evaluate text 
+    responses based on the following criteria:
+    1. Responses must be in English and must make sense. They cannot be gibberish or 
+    nonsensical sentences.
+    2. Responses must relate to the debate topic.
+    3. The 'Initial Opinion' should be at least 3 words.
+    4. The 'User Intro, 'User Rebuttal' and 'User Conclusion' should relate to the topic and not be 
+    repetitive. They should be at least 10 words long and make a coherent argument.
+    5. The 'Final Opinion' has more leeway but should not be nonsensical.
+    Only flag serious and obvious issues. Do not flag minor issues like spelling or 
+    grammar mistakes.
+
+    You will evaluate the user's responses in each of the following locations:
+    [Initial Opinion, 
+    User Intro,
+    User Rebuttal,
+    User Conclusion,
+    Final Opinion]
+
+    If a response has a serious issue based on the criteria above, you will return a JSON formatted list where each object has two fields:
+    - 'location': the part of the debate where the issue occurred.
+    - 'reason': a short summary (5-10 words) of the problem.
+
+    If no issues are found, return an empty list.
+    """
+
+    prompt = f"""
+    Debate Topic: {debate_topic}
+    
+    Initial Opinion: {debate.initial_opinion}
+    User Intro: {debate.user_responses_dict['intro']}
+    User Rebuttal: {debate.user_responses_dict['rebuttal']}
+    User Conclusion: {debate.user_responses_dict['conclusion']}
+    Final Opinion: {debate.final_opinion}
+    
+    Evaluate the above responses and return any issues found.
+    """
+
+    response = openai_response(system_prompt, prompt, debate.llm_model_type)
+    try:
+        issues = json.loads(response)
+    except json.JSONDecodeError:
+        issues = []
+    return issues
 
 def get_llm_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, llm_debate_type, chat_history_dict, user_info: UserInfo):
     if llm_debate_type == "mixed":
