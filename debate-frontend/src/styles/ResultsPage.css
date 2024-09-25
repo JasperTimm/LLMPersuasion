@@ -1,9 +1,12 @@
 .results-container {
     max-width: 800px;
     margin: 0 auto;
+    margin-top: 50px;
     padding: 20px;
     font-family: Arial, sans-serif;
     line-height: 1.6;
+    border: 2px dotted #000;
+    border-radius: 8px;
 }
 
 .results-title {
@@ -19,4 +22,23 @@
     padding: 50px;
     border: 2px dashed #ccc;
     color: #777;
+}
+
+.result-box {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.error-message {
+    color: red;
+}
+
+.center-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }

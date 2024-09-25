@@ -19,6 +19,8 @@ class User(UserMixin, db.Model):
     finished = db.Column(db.Boolean, nullable=False, default=False)
     concluded = db.Column(db.Boolean, nullable=False, default=False)
     user_info = db.relationship('UserInfo', backref='user', uselist=False)
+    participant_id = db.Column(db.String(150), nullable=True)
+    participant_service = db.Column(db.String(150), nullable=True)
 
 class UserInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,12 +52,40 @@ class CopyPasteEvent(db.Model):
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
     current_page = db.Column(db.String(255), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    debate_id = db.Column(db.String, db.ForeignKey('debate.id'), nullable=False)
 
 class DebateLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     debate_id = db.Column(db.String, db.ForeignKey('debate.id'), nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
     action = db.Column(db.String, nullable=False)
+
+class DebateResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    debate_id = db.Column(db.String, db.ForeignKey('debate.id'), nullable=False)
+    user_rating = db.Column(db.String, nullable=False)
+    ai_rating = db.Column(db.String, nullable=False)
+    time_spent = db.Column(db.Integer, nullable=False)  # Time spent in seconds
+    feedback = db.Column(db.Text, nullable=False)
+    requires_review = db.Column(db.Boolean, default=False)
+    review_reasons = db.Column(db.Text, nullable=True, default='[]')  # List of reasons for review as JSON string
+    extended_reasons = db.Column(db.Text, nullable=True, default='[]')  # List of JSON objects for extended reasons
+
+    @property
+    def review_reasons_list(self):
+        return json.loads(self.review_reasons)
+
+    @review_reasons_list.setter
+    def review_reasons_list(self, value):
+        self.review_reasons = json.dumps(value)
+
+    @property
+    def extended_reasons_list(self):
+        return json.loads(self.extended_reasons)
+
+    @extended_reasons_list.setter
+    def extended_reasons_list(self, value):
+        self.extended_reasons = json.dumps(value)
 
 class Debate(db.Model):
     id = db.Column(db.String, primary_key=True)

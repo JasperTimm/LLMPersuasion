@@ -16,6 +16,10 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
 
     useEffect(() => {
         const handlePaste = (event) => {
+            // If debate is not defined, do not log event
+            if (debate.debate_id === undefined) {
+                return;
+            }
             const data = event.clipboardData.getData('Text');
             const type = 'paste'
 
@@ -23,11 +27,16 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
                 data,
                 'currentPage': currentPage === 'DebateFormPage' ? currentPage + ':' + debate.state : currentPage,
                 type,
+                debateId: debate.debate_id,
             }).catch(error => {
                 // Fail silently
             });
         };
         const handleCopy = (event) => {
+            // If debate is not defined, do not log event
+            if (debate.debate_id === undefined) {
+                return;
+            }
             const data = window.getSelection().toString();
             const type = 'copy'
 
@@ -35,6 +44,7 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
                 data,
                 'currentPage': currentPage === 'DebateFormPage' ? currentPage + ':' + debate.state : currentPage,
                 type,
+                debateId: debate.debate_id,
             }).catch(error => {
                 // Fail silently
             });

@@ -4,11 +4,14 @@ import random
 import string
 import json
 from database import db
-from models import User, Debate, Topic, UserInfo, all_debate_types, CopyPasteEvent, DebateLog
-from llm_handler import get_llm_response
+from models import User, Debate, Topic, UserInfo, all_debate_types, CopyPasteEvent, DebateLog, DebateResult
+from llm_handler import get_llm_response, responses_look_sensible
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# A constant for the minimum time taken to complete a debate before its considered suspicious
+MIN_TIME_SPENT = 300
 
 def init_routes(app):
     @app.route('/create_new_user', methods=['POST'])
@@ -26,7 +29,15 @@ def init_routes(app):
         password = generate_password()
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(username=username, password=hashed_password, admin=False)
+
+        # If there's a request body, use the provided participant ID and service
+        if request.json:
+            participant_id = request.json.get('participantId')
+            participant_service = request.json.get('service')
+            new_user = User(username=username, password=hashed_password, admin=False, participant_id=participant_id, participant_service=participant_service)
+        else:
+            new_user = User(username=username, password=hashed_password, admin=False)
+
         db.session.add(new_user)
         db.session.commit()
 
@@ -455,8 +466,157 @@ def init_routes(app):
             type=data.get('type'),
             data=data.get('data'),
             current_page=data.get('currentPage'),
-            user_id=current_user.id
+            user_id=current_user.id,
+            debate_id=data.get('debateId')
         )
         db.session.add(event)
         db.session.commit()
         return '', 201
+
+    @app.route('/get_results', methods=['GET'])
+    @login_required
+    def get_results():
+        user_id = current_user.id
+
+        # Check the user has concluded
+        user = User.query.get(user_id)
+        if not user.concluded:
+            return jsonify({'error': 'User must be concluded before viewing results'}), 400
+        
+        # Get results for all debates for this user
+        results = DebateResult.query.join(Debate).filter(Debate.user_id == user_id).all()
+
+        # Add topic description to results
+        for result in results:
+            topic = Topic.query.get(Debate.query.get(result.debate_id).topic_id)
+            result.topic_description = topic.description
+
+        # Add user and AI sides to results
+        for result in results:
+            debate = Debate.query.get(result.debate_id)
+            result.user_side = debate.user_side
+            result.ai_side = debate.ai_side
+
+        results_list = [{
+            'debateId': result.debate_id,
+            'userRating': result.user_rating,
+            'aiRating': result.ai_rating,
+            'timeSpent': result.time_spent,
+            'feedback': result.feedback,
+            'requiresReview': result.requires_review,
+            'topicDescription': result.topic_description,
+            'userSide': result.user_side,
+            'aiSide': result.ai_side
+        } for result in results]
+        return jsonify(results_list), 200
+    
+    @app.route('/generate_results', methods=['POST'])
+    @login_required
+    def generate_results():
+        user_id = current_user.id
+
+        # Check the user has concluded
+        user = User.query.get(user_id)
+        if not user.concluded:
+            return jsonify({'error': 'User must be concluded before generating results'}), 400
+
+        # Check if we've already generated results for this user
+        results = DebateResult.query.join(Debate).filter(Debate.user_id == user_id).all()
+        if results:
+            return jsonify({'error': 'Results already generated'}), 400
+        
+        # Otherwise generate results for all debates for this user
+        debates = Debate.query.filter_by(user_id=user_id).all()
+        for debate in debates:
+            debate_id = debate.id
+
+            # Check if it's simply not finished first, continue if so
+            if debate.state != 'finished':
+                result = DebateResult(
+                    debate_id=debate_id,
+                    user_rating='',
+                    ai_rating='',
+                    time_spent=0,
+                    feedback='',
+                    requires_review=True,
+                    review_reasons_list=['UNFINISHED']
+                )
+                db.session.add(result)
+                continue
+
+            print(f"Generating results for debate with ID: {debate_id}")
+
+            # Check for suspicious activity
+            start_time = DebateLog.query.filter_by(debate_id=debate_id, action='start').first().timestamp
+            end_time = DebateLog.query.filter_by(debate_id=debate_id, action='final_position').first().timestamp
+            time_spent = (end_time - start_time).total_seconds()
+
+            copy_paste_events = CopyPasteEvent.query.filter_by(debate_id=debate_id).all()
+            paste_events = [event for event in copy_paste_events if event.type == 'paste']
+            copy_events = [event for event in copy_paste_events if event.type == 'copy']
+
+            # Run through list of copy events and if the data matches a paste event, remove it from paste_events
+            for copy_event in copy_events:
+                for paste_event in paste_events:
+                    if copy_event.data == paste_event.data:
+                        paste_events.remove(paste_event)
+                        break
+
+            review_reasons = []
+
+            # Placeholder checks
+            if time_spent < MIN_TIME_SPENT:
+                review_reasons.append('SUSPICIOUS_TIME')
+            if len(paste_events):
+                review_reasons.append('PASTE_EVENTS')
+            
+            topic = Topic.query.get(debate.topic_id)
+            extended_reasons = responses_look_sensible(debate, topic.description)
+            if extended_reasons:
+                review_reasons.append('INSENSIBLE_RESPONSES')
+
+            if review_reasons:
+                result = DebateResult(
+                    debate_id=debate_id,
+                    user_rating='',
+                    ai_rating='',
+                    time_spent=time_spent,
+                    feedback='',
+                    requires_review=True,
+                    review_reasons_list=review_reasons,
+                    extended_reasons_list=extended_reasons
+                )
+                db.session.add(result)
+                continue
+            
+            # Otherwise, continue to generate results
+            user_rating = generate_rating(debate.user_responses_dict)
+            ai_rating = generate_rating(debate.llm_responses_dict)
+            feedback = generate_feedback(debate)
+
+            result = DebateResult(
+                debate_id=debate_id,
+                user_rating=user_rating,
+                ai_rating=ai_rating,
+                time_spent=time_spent,
+                feedback=feedback,
+                requires_review=False
+            )
+            db.session.add(result)
+
+        db.session.commit()
+
+        # If user's participant_id is set, handle the submission of results to the service
+        if user.participant_id:
+            # Placeholder for sending results to the service
+            pass
+
+        return 'Results generated', 200
+
+def generate_rating(responses):
+    # Placeholder function to generate a rating from A-F
+    return 'A'
+
+def generate_feedback(debate):
+    # Placeholder function to generate feedback
+    return 'Great job! Keep it up.'            

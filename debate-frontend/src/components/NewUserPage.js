@@ -9,6 +9,21 @@ const NewUserPage = ({ setNewUser }) => {
     const [loginDetails, setLoginDetails] = useState({ username: '', password: '' });
     const [userCreated, setUserCreated] = useState(false);
     const consentContainerRef = useRef(null);
+    const [isServiceParticipant, setIsServiceParticipant] = useState(false);
+    const [participantId, setParticipantId] = useState('');
+    const [service, setService] = useState('');
+
+    const handleParticipantTypeChange = (event) => {
+        setIsServiceParticipant(event.target.value === 'service');
+    };
+
+    const handleParticipantIdChange = (event) => {
+        setParticipantId(event.target.value);
+    };
+
+    const handleServiceChange = (event) => {
+        setService(event.target.value);
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -28,7 +43,9 @@ const NewUserPage = ({ setNewUser }) => {
 
     const handleSubmit = async () => {
         try {
-            const response = await axiosInstance.post('/create_new_user');
+            const response = isServiceParticipant ? 
+                await axiosInstance.post('/create_new_user', { participantId, service }) : 
+                await axiosInstance.post('/create_new_user', {});
             const { username, password } = response.data;
             setLoginDetails({ username, password });
             setUserCreated(true);
@@ -60,6 +77,48 @@ const NewUserPage = ({ setNewUser }) => {
         <div className="container">
             <h1>Welcome to the Debate Platform</h1>
             <p>Thank you for taking the time to participate in this study. Your input is invaluable to us and we appreciate your participation!</p>
+            <div className='participant-info'>
+                <p>Are you a volunteer or a participant from a service?</p>
+                <label>
+                    <input
+                        type="radio"
+                        value="volunteer"
+                        checked={!isServiceParticipant}
+                        onChange={handleParticipantTypeChange}
+                    />
+                    Volunteer
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        value="service"
+                        checked={isServiceParticipant}
+                        onChange={handleParticipantTypeChange}
+                    />
+                    Service Participant
+                </label>
+                {isServiceParticipant && (
+                    <div>
+                        <br />
+                        <label>
+                            Participant ID:
+                            <input
+                                type="text"
+                                value={participantId}
+                                onChange={handleParticipantIdChange}
+                            />
+                        </label>
+                        <label>
+                            Service:
+                            <select value={service} onChange={handleServiceChange}>
+                                <option value="">Select a service</option>
+                                <option value="Prolific">Prolific</option>
+                                <option value="Amazon Mechanical Turk">Amazon Mechanical Turk</option>
+                            </select>
+                        </label>
+                    </div>
+                )}
+            </div>
             <p>Please read the consent form below and confirm your agreement to proceed.</p>
             <div className="consent-container" ref={consentContainerRef}>
                 <h1>Consent Form</h1>
