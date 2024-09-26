@@ -6,6 +6,7 @@ const ResultsPage = () => {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [participant, setParticipant] = useState(null);
 
     useEffect(() => {
         fetchResults();
@@ -14,7 +15,10 @@ const ResultsPage = () => {
     const fetchResults = async () => {
         try {
             const response = await axiosInstance.get('/get_results');
-            setResults(response.data);
+            setResults(response.data.results);
+            if (response.data.participant) {
+                setParticipant(response.data.participant);
+            }
         } catch (error) {
             console.error("Error fetching results:", error);
             setError('Failed to fetch results.');
@@ -47,9 +51,37 @@ const ResultsPage = () => {
         }
     };
 
+    const getParticipantStatusClass = (status) => {
+        switch (status) {
+            case 'APPROVED': return 'status-approved';
+            case 'AWAITING_REVIEW': return 'status-awaiting-review';
+            case 'ERROR': return 'status-error';
+            default: return '';
+        }
+    };
+
+    const getParticipantStatusMessage = (status, service, error) => {
+        switch (status) {
+            case 'APPROVED':
+                return `Approved: Your submission was approved in ${service}. Thanks for your participation!`;
+            case 'AWAITING_REVIEW':
+                return `In review: Your submission was completed in ${service}, however we need to manually review it.`;
+            case 'ERROR':
+                return `There was an error updating this submission in ${service}: ${error}. We will contact you soon to resolve this.`;
+            default:
+                return '';
+        }
+    };
+
     return (
         <div className="results-container">
             <h2 className="results-title">Your Debate Results</h2>
+            {participant && (
+                <div className={`participant-status ${getParticipantStatusClass(participant.participantStatus.status)}`}>
+                    <h3>Participant submission status</h3>
+                    {getParticipantStatusMessage(participant.participantStatus.status, participant.participantService, participant.participantStatus.error)}
+                </div>
+            )}
             {loading ? (
                 <p>Generating results... this could take a while.</p>
             ) : results.length === 0 ? (
@@ -98,7 +130,7 @@ const ResultsPage = () => {
                         )}
                     </div>
                 ))
-            )}
+            )}            
             {error && <p className="error-message">{error}</p>}
         </div>
     );

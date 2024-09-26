@@ -112,8 +112,8 @@ const NewUserPage = ({ setNewUser }) => {
                             Service:
                             <select value={service} onChange={handleServiceChange}>
                                 <option value="">Select a service</option>
-                                <option value="Prolific">Prolific</option>
-                                <option value="Amazon Mechanical Turk">Amazon Mechanical Turk</option>
+                                <option value="prolific">Prolific</option>
+                                <option value="amazon">Amazon Mechanical Turk</option>
                             </select>
                         </label>
                     </div>

@@ -21,6 +21,17 @@ class User(UserMixin, db.Model):
     user_info = db.relationship('UserInfo', backref='user', uselist=False)
     participant_id = db.Column(db.String(150), nullable=True)
     participant_service = db.Column(db.String(150), nullable=True)
+    participant_status = db.Column(db.Text, nullable=True, default='{}')
+
+    @property
+    def participant_status_dict(self):
+        if not self.participant_status:
+            return {}
+        return json.loads(self.participant_status)
+
+    @participant_status_dict.setter
+    def participant_status_dict(self, value):
+        self.participant_status = json.dumps(value)
 
 class UserInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
