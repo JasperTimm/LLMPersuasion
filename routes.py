@@ -414,6 +414,10 @@ def init_routes(app):
             remaining_debate_types = get_remaining_debate_types(current_user.id)
             if not remaining_debate_types:
                 user.finished = True
+        
+        # Arguments need to be transitioned to finished state
+        if debate.llm_debate_type == 'argument':
+            debate.state = 'finished'
 
         # Log the final position
         debate_log = DebateLog(
@@ -496,6 +500,11 @@ def init_routes(app):
             debate = Debate.query.get(result.debate_id)
             result.user_side = debate.user_side
             result.ai_side = debate.ai_side
+            result.user_responses = debate.user_responses_dict
+            result.ai_responses = debate.llm_responses_dict
+            result.llm_debate_type = debate.llm_debate_type
+            if debate.llm_debate_type == 'mixed':
+                result.chat_history = debate.chat_history_dict
 
         results_list = [{
             'debateId': result.debate_id,
@@ -506,7 +515,11 @@ def init_routes(app):
             'requiresReview': result.requires_review,
             'topicDescription': result.topic_description,
             'userSide': result.user_side,
-            'aiSide': result.ai_side
+            'aiSide': result.ai_side,
+            'llmDebateType': result.llm_debate_type,
+            'userResponses': result.user_responses,
+            'aiResponses': result.ai_responses,
+            'chatHistory': result.chat_history if hasattr(result, 'chat_history') else None,
         } for result in results]
         return jsonify(results_list), 200
     
@@ -549,6 +562,19 @@ def init_routes(app):
             end_time = DebateLog.query.filter_by(debate_id=debate_id, action='final_position').first().timestamp
             time_spent = (end_time - start_time).total_seconds()
 
+            # If it's an argument, don't bother with the rest
+            if debate.llm_debate_type == 'argument':
+                result = DebateResult(
+                    debate_id=debate_id,
+                    user_rating='',
+                    ai_rating='',
+                    time_spent=time_spent,
+                    feedback_dict={},
+                    requires_review=False
+                )
+                db.session.add(result)
+                continue
+
             copy_paste_events = CopyPasteEvent.query.filter_by(debate_id=debate_id).all()
             paste_events = [event for event in copy_paste_events if event.type == 'paste']
             copy_events = [event for event in copy_paste_events if event.type == 'copy']
@@ -589,8 +615,6 @@ def init_routes(app):
             
             # Otherwise, continue to generate results
             ratings = generate_ratings_and_feedback(debate, topic.description)
-
-            print(f"Ratings: {ratings}")
 
             result = DebateResult(
                 debate_id=debate_id,
