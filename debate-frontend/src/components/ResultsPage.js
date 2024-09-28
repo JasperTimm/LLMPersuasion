@@ -6,6 +6,11 @@ const ResultsPage = () => {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [expandedResultIndex, setExpandedResultIndex] = useState(null);
+
+    const toggleDebateLogs = (index) => {
+        setExpandedResultIndex(expandedResultIndex === index ? null : index);
+    };
 
     useEffect(() => {
         fetchResults();
@@ -17,7 +22,7 @@ const ResultsPage = () => {
             setResults(response.data);
         } catch (error) {
             console.error("Error fetching results:", error);
-            setError('Failed to fetch results.');
+            setError('Failed to fetch results. Please try again.');
         }
     };
 
@@ -64,8 +69,36 @@ const ResultsPage = () => {
                         </div>
                         {result.requiresReview ? (
                             <p>This debate requires manual reviewing.</p>
+                        ) : result.llmDebateType === 'argument' ? (
+                            <p>This topic involved simply reading a passage. There are no results to display.</p>
                         ) : (
                             <>
+                                <button onClick={() => toggleDebateLogs(index)}>
+                                    {expandedResultIndex === index ? 'Hide Debate Logs' : 'Show Debate Logs'}
+                                </button>
+                                {expandedResultIndex === index && (
+                                    <div className="debate-logs">
+                                        {['intro', 'rebuttal', 'conclusion'].map((phase) => (
+                                            <div key={phase} className="debate-log-phase">
+                                                <h3>{phase.charAt(0).toUpperCase() + phase.slice(1)}</h3>
+                                                <div className="responses-container">
+                                                    <div className="user-ai-responses">
+                                                        <p><strong>User Response:</strong> {result.userResponses[phase]}</p>
+                                                        <p><strong>AI Response:</strong> {result.aiResponses[phase]}</p>
+                                                    </div>
+                                                    {result.chatHistory && result.chatHistory[phase] && (
+                                                        <div className="chat-history">
+                                                            <h4>AI Agents' Chat</h4>
+                                                            {['personalised agent', 'stats agent', 'executive agent'].map((agent, chatIndex) => (
+                                                                <p key={chatIndex}><strong>{agent}:</strong> {result.chatHistory[phase][agent]}</p>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="sides-container">
                                     <div className="side user-side">
                                         <h3>User</h3>
@@ -78,7 +111,7 @@ const ResultsPage = () => {
                                         </div>
                                     </div>
                                     <div className="side ai-side">
-                                        <h3>AI</h3>
+                                        <h3>AI ({result.llmDebateType})</h3>
                                         <p>{result.aiSide}</p>
                                         <div className="rating-container">
                                             <h4>Results</h4>
