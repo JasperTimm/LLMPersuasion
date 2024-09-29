@@ -16,8 +16,8 @@ const OpinionPage = ({ debate, setDebate }) => {
           <div className='container'>
             <h2 className="debate-title">Initial Opinion</h2>
             <h3>
-              Consider the debate topic above and share your initial opinion.
-              Just one or two sentences to summarize your stance.
+            Consider the debate topic above and share your initial opinion, briefly explaining <i>why</i> you feel that way. 
+            A couple of sentences is enough — please be more specific than saying "I agree" or "I'm not sure".
             </h3>
             <textarea
               className="input-textarea"
