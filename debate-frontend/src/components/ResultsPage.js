@@ -7,7 +7,6 @@ const ResultsPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [participant, setParticipant] = useState(null);
-
     const [expandedResultIndex, setExpandedResultIndex] = useState(null);
 
     const toggleDebateLogs = (index) => {
