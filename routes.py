@@ -13,6 +13,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # A constant for the minimum time taken to complete a debate before its considered suspicious
 MIN_TIME_SPENT = 300
+MAX_PASTE_LENGTH = 100
 
 def init_routes(app):
     @app.route('/create_new_user', methods=['POST'])
@@ -228,7 +229,6 @@ def init_routes(app):
             'argument': llm_debate_type == 'argument'
         }
 
-        print(f"Started debate with ID: {debate_id}, topic: {chosen_topic.description}, and user ID: {current_user.id}")
         return jsonify(response)
 
     @app.route('/initial_position', methods=['POST'])
@@ -315,11 +315,7 @@ def init_routes(app):
         
         debate = Debate.query.get(debate_id)
         if not debate:
-            print(f"Invalid debate ID: {debate_id}")
             return jsonify({'error': 'Invalid debate ID'}), 400
-        
-        print(f"Updating debate with ID: {debate_id}")
-        print(f"User message: {user_message}")
         
         topic = Topic.query.get(debate.topic_id)
         if not topic:
@@ -347,7 +343,6 @@ def init_routes(app):
             llm_responses[debate.state] = []
         llm_responses[debate.state].append(llm_response)
         debate.llm_responses_dict = llm_responses
-        print(f"Updated LLM responses: {debate.llm_responses_dict}")
 
         # Update user responses
         user_responses = debate.user_responses_dict
@@ -355,12 +350,10 @@ def init_routes(app):
             user_responses[debate.state] = []
         user_responses[debate.state].append(user_message)
         debate.user_responses_dict = user_responses
-        print(f"Updated user responses: {debate.user_responses_dict}")
         
         # Update chat history
         if update_chat_history_dict:
             debate.chat_history_dict = update_chat_history_dict
-            print(f"Updated chat history: {debate.chat_history_dict}")
             current_phase_chat_history = update_chat_history_dict.get(debate.state, {})
 
         # Log the debate state
@@ -415,6 +408,10 @@ def init_routes(app):
             remaining_debate_types = get_remaining_debate_types(current_user.id)
             if not remaining_debate_types:
                 user.finished = True
+        
+        # Arguments need to be transitioned to finished state
+        if debate.llm_debate_type == 'argument':
+            debate.state = 'finished'
 
         # Log the final position
         debate_log = DebateLog(
@@ -497,6 +494,11 @@ def init_routes(app):
             debate = Debate.query.get(result.debate_id)
             result.user_side = debate.user_side
             result.ai_side = debate.ai_side
+            result.user_responses = debate.user_responses_dict
+            result.ai_responses = debate.llm_responses_dict
+            result.llm_debate_type = debate.llm_debate_type
+            if debate.llm_debate_type == 'mixed':
+                result.chat_history = debate.chat_history_dict
 
         results_list = [{
             'debateId': result.debate_id,
@@ -507,7 +509,11 @@ def init_routes(app):
             'requiresReview': result.requires_review,
             'topicDescription': result.topic_description,
             'userSide': result.user_side,
-            'aiSide': result.ai_side
+            'aiSide': result.ai_side,
+            'llmDebateType': result.llm_debate_type,
+            'userResponses': result.user_responses,
+            'aiResponses': result.ai_responses,
+            'chatHistory': result.chat_history if hasattr(result, 'chat_history') else None,
         } for result in results]
 
         response_dict = {
@@ -563,6 +569,19 @@ def init_routes(app):
             end_time = DebateLog.query.filter_by(debate_id=debate_id, action='final_position').first().timestamp
             time_spent = (end_time - start_time).total_seconds()
 
+            # If it's an argument, don't bother with the rest
+            if debate.llm_debate_type == 'argument':
+                result = DebateResult(
+                    debate_id=debate_id,
+                    user_rating='',
+                    ai_rating='',
+                    time_spent=time_spent,
+                    feedback_dict={},
+                    requires_review=False
+                )
+                db.session.add(result)
+                continue
+
             copy_paste_events = CopyPasteEvent.query.filter_by(debate_id=debate_id).all()
             paste_events = [event for event in copy_paste_events if event.type == 'paste']
             copy_events = [event for event in copy_paste_events if event.type == 'copy']
@@ -571,6 +590,10 @@ def init_routes(app):
             for copy_event in copy_events:
                 for paste_event in paste_events:
                     if copy_event.data == paste_event.data:
+                        paste_events.remove(paste_event)
+                        break
+                    # Ignore pastes that are shorter than MAX_PASTE_LENGTH
+                    if len(paste_event.data) < MAX_PASTE_LENGTH:
                         paste_events.remove(paste_event)
                         break
 
@@ -604,8 +627,6 @@ def init_routes(app):
             
             # Otherwise, continue to generate results
             ratings = generate_ratings_and_feedback(debate, topic.description)
-
-            print(f"Ratings: {ratings}")
 
             result = DebateResult(
                 debate_id=debate_id,

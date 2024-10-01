@@ -188,16 +188,14 @@ def responses_look_sensible(debate, debate_topic):
     system_prompt = f"""
     You are a meticulous evaluator of user responses in debates. You evaluate text 
     responses based on the following criteria:
-    1. Responses must be in English and must make sense. They cannot be gibberish or 
+    1. ALL responses must be in English and must make sense. They cannot be gibberish or 
     nonsensical sentences.
-    2. Responses must relate to the debate topic.
+    2. ALL responses must relate to the debate topic.
     3. The 'Initial Opinion' should be at least 3 words.
-    4. The 'User Intro, 'User Rebuttal' and 'User Conclusion' should relate to the topic and not be 
-    repetitive. They should be at least 10 words long and make a coherent argument.
-    5. The 'Final Opinion' has more leeway but should not be nonsensical.
-    Only flag serious and obvious issues. Do not flag minor issues like spelling or 
-    grammar mistakes.
-
+    4. The 'User Intro, 'User Rebuttal' and 'User Conclusion' should be at least 10 words, should not be overly repetitive, and should make coherent arguments.
+    5. The 'Final Opinion' has more leeway but should not be nonsensical. Only flag serious and obvious issues with it.
+    6. A little leeway must be given when it is obvious English is not the user's first language.
+    
     You will evaluate the user's responses in each of the following locations:
     [Initial Opinion, 
     User Intro,

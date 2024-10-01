@@ -78,7 +78,7 @@ const NewUserPage = ({ setNewUser }) => {
             <h1>Welcome to the Debate Platform</h1>
             <p>Thank you for taking the time to participate in this study. Your input is invaluable to us and we appreciate your participation!</p>
             <div className='participant-info'>
-                <p>Are you a volunteer or a participant from a service?</p>
+                <p>Are you a volunteer or a paid participant?</p>
                 <label>
                     <input
                         type="radio"
@@ -95,7 +95,7 @@ const NewUserPage = ({ setNewUser }) => {
                         checked={isServiceParticipant}
                         onChange={handleParticipantTypeChange}
                     />
-                    Service Participant
+                    Paid Participant
                 </label>
                 {isServiceParticipant && (
                     <div>

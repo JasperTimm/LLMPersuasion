@@ -1,5 +1,6 @@
 import React from 'react';
 import { axiosInstance } from '../config';
+import '../styles/EndEarlyPage.css';
 
 const EndEarlyPage = ({ setEndEarly, user, setUser }) => {
 
@@ -24,8 +25,10 @@ const EndEarlyPage = ({ setEndEarly, user, setUser }) => {
                 By ending your participation, you will not be able to participate in any further debates.
                 Are you sure you want to end your participation?
             </p>
-            <button onClick={handleConfirm} style={{ marginRight: '10px' }}>Confirm</button>
-            <button onClick={handleCancel} style={{ marginLeft: '10px' }}>Cancel</button>
+            <div className="button-group">
+                <button onClick={handleConfirm} className="button">Confirm</button>
+                <button onClick={handleCancel} className="button">Cancel</button>
+            </div>
         </div>
     );
 };
