@@ -38,6 +38,7 @@
 
 .center-button {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100%;
@@ -116,4 +117,39 @@
     height: 1px;
     background: #ccc;
     margin: 10px 0;
+}
+
+.status-approved {
+    background-color: #e6f4e8;
+    border-color: #28a745;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 20px;
+    color: #28a745;
+}
+
+.status-awaiting-review {
+    background-color: #fff8e6;
+    border-color: #ffc107;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 20px;
+    color: #ffc107;
+}
+
+.status-error {
+    background-color: #fbe6e6;
+    border-color: #dc3545;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 20px;
+    color: #dc3545;
+}
+
+.participant-status {
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 20px;
 }

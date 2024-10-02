@@ -6,7 +6,9 @@ const ResultsPage = () => {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [participant, setParticipant] = useState(null);
     const [expandedResultIndex, setExpandedResultIndex] = useState(null);
+    const [completionLink, setCompletionLink] = useState('');
 
     const toggleDebateLogs = (index) => {
         setExpandedResultIndex(expandedResultIndex === index ? null : index);
@@ -17,9 +19,15 @@ const ResultsPage = () => {
     }, []);
 
     const fetchResults = async () => {
+        setError('');
         try {
             const response = await axiosInstance.get('/get_results');
-            setResults(response.data);
+            setResults(response.data.results);
+            if (response.data.results.length > 0 && response.data.participant) {
+                setParticipant(response.data.participant);
+                const code = response.data.participant.participantStatus.completion_code;
+                setCompletionLink(`https://app.prolific.com/submissions/complete?cc=${code}`);
+            }
         } catch (error) {
             console.error("Error fetching results:", error);
             setError('Failed to fetch results. Please try again.');
@@ -55,11 +63,20 @@ const ResultsPage = () => {
     return (
         <div className="results-container">
             <h2 className="results-title">Your Debate Results</h2>
+            {participant && (
+                <div className={`participant-status`}>
+                    <h3>Study completed</h3>
+                    <p>Thanks for participating in the study!</p>
+                    <p>Please click <a href={completionLink} target="_blank" rel="noreferrer">here</a> to complete the study in {participant.participantService}.</p>
+                    <p>If the link does not work, please use the following code: <strong>{participant.participantStatus.completion_code}</strong>.</p>
+                </div>
+            )}
             {loading ? (
                 <p>Generating results... this could take a while.</p>
             ) : results.length === 0 ? (
                 <div className="center-button">
                     <button onClick={generateResults}>Get my results!</button>
+                    <p><strong>Paid participants: </strong> completion code will appear after results are generated.</p>
                 </div>
             ) : (
                 results.map((result, index) => (
@@ -131,7 +148,7 @@ const ResultsPage = () => {
                         )}
                     </div>
                 ))
-            )}
+            )}            
             {error && <p className="error-message">{error}</p>}
         </div>
     );

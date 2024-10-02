@@ -69,34 +69,38 @@ function ContinuePage({ startDebate, user, setUser, resetDebate }) {
                             <span className="option-title">Continue to Next Debate:</span> Move directly to the next debate and keep the momentum going.
                         </label>
                     </div>
-                    <div className={`continue-option continue-later ${selectedOption === 'continueLater' ? 'selected' : ''}`} 
-                        onClick={() => setSelectedOption('continueLater')}>
-                        <input
-                            type="radio"
-                            id="continue-later"
-                            name="continueOption"
-                            value="continueLater"
-                            checked={selectedOption === 'continueLater'}
-                            onChange={handleOptionChange}
-                        />
-                        <label htmlFor="continue-later">
-                            <span className="option-title">Continue Later:</span> Take a break and come back later to continue. It's crucial you conclude your participation in the study at some point. If you think you might forget to come back, we recommend you conclude your participation now.
-                        </label>
-                    </div>
-                    <div className={`continue-option conclude-study ${selectedOption === 'finishStudy' ? 'selected' : ''}`} 
-                        onClick={() => setSelectedOption('finishStudy')}>
-                        <input
-                            type="radio"
-                            id="conclude-study"
-                            name="continueOption"
-                            value="finishStudy"
-                            checked={selectedOption === 'finishStudy'}
-                            onChange={handleOptionChange}
-                        />
-                        <label htmlFor="conclude-study">
-                            <span className="option-title">Conclude Participation:</span> End your participation in the study. You won't be able to participate in any further debates.
-                        </label>
-                    </div>
+                    {user.volunteer && (
+                        <>
+                        <div className={`continue-option continue-later ${selectedOption === 'continueLater' ? 'selected' : ''}`} 
+                            onClick={() => setSelectedOption('continueLater')}>
+                            <input
+                                type="radio"
+                                id="continue-later"
+                                name="continueOption"
+                                value="continueLater"
+                                checked={selectedOption === 'continueLater'}
+                                onChange={handleOptionChange}
+                            />
+                            <label htmlFor="continue-later">
+                                <span className="option-title">Continue Later:</span> Take a break and come back later to continue. It's crucial you conclude your participation in the study at some point. If you think you might forget to come back, we recommend you conclude your participation now.
+                            </label>
+                        </div>
+                        <div className={`continue-option conclude-study ${selectedOption === 'finishStudy' ? 'selected' : ''}`} 
+                            onClick={() => setSelectedOption('finishStudy')}>
+                            <input
+                                type="radio"
+                                id="conclude-study"
+                                name="continueOption"
+                                value="finishStudy"
+                                checked={selectedOption === 'finishStudy'}
+                                onChange={handleOptionChange}
+                            />
+                            <label htmlFor="conclude-study">
+                                <span className="option-title">Conclude Participation:</span> End your participation in the study. You won't be able to participate in any further debates.
+                            </label>
+                        </div>
+                        </>
+                    )}
                 </div>
                 <button className="submit-button" onClick={handleSubmit}>Submit</button>            
             </div>

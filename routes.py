@@ -1,4 +1,5 @@
 from flask import request, jsonify, redirect, url_for
+import os
 import uuid
 import random
 import string
@@ -6,6 +7,7 @@ import json
 from database import db
 from models import User, Debate, Topic, UserInfo, all_debate_types, CopyPasteEvent, DebateLog, DebateResult
 from llm_handler import get_llm_response, responses_look_sensible, generate_ratings_and_feedback
+from participant_service import send_submission_info
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -84,7 +86,8 @@ def init_routes(app):
                 'username': user.username,
                 'admin': user.admin,
                 'finished': user.finished,
-                'concluded': user.concluded
+                'concluded': user.concluded,
+                'volunteer': user.participant_id is None
             }
         }), 200
 
@@ -514,7 +517,19 @@ def init_routes(app):
             'aiResponses': result.ai_responses,
             'chatHistory': result.chat_history if hasattr(result, 'chat_history') else None,
         } for result in results]
-        return jsonify(results_list), 200
+
+        response_dict = {
+            'results': results_list,
+        }
+
+        if user.participant_id:
+            response_dict['participant'] = {
+                'participantId': user.participant_id,
+                'participantService': user.participant_service,
+                'participantStatus': user.participant_status_dict
+            }
+
+        return jsonify(response_dict), 200
     
     @app.route('/generate_results', methods=['POST'])
     @login_required
@@ -533,6 +548,7 @@ def init_routes(app):
         
         # Otherwise generate results for all debates for this user
         debates = Debate.query.filter_by(user_id=user_id).all()
+        reviews_required = False
         for debate in debates:
             debate_id = debate.id
 
@@ -608,6 +624,7 @@ def init_routes(app):
                     extended_reasons_list=extended_reasons
                 )
                 db.session.add(result)
+                reviews_required = True
                 continue
             
             # Otherwise, continue to generate results
@@ -623,11 +640,23 @@ def init_routes(app):
             )
             db.session.add(result)
 
-        db.session.commit()
 
-        # If user's participant_id is set, handle the submission of results to the service
         if user.participant_id:
-            # Placeholder for sending results to the service
-            pass
+            # We can approve in the API automatically using 'send_submission_info',
+            # but for now we're just leaving the submission
+            # in 'to review' and giving a completion code which indicates
+            # whether we think we should approve or not
+            if reviews_required:
+                user.participant_status_dict = {
+                    'status': 'NEEDS_REVIEW',
+                    'completion_code': os.getenv('PROLIFIC_REVIEW_CODE')
+                }
+            else:
+                user.participant_status_dict = {
+                    'status': 'SHOULD_APPROVE',
+                    'completion_code': os.getenv('PROLIFIC_APPROVAL_CODE')
+                }
+
+        db.session.commit()
 
         return 'Results generated', 200            
