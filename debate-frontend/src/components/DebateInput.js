@@ -5,6 +5,7 @@ import '../styles/DebateInput.css';
 const DebateInput = ({ debateId, updateDebate, debateState }) => {
     const [userMessage, setUserMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [wordCount, setWordCount] = useState(0);
 
     const sendMessage = async () => {
         setLoading(true);
@@ -15,12 +16,33 @@ const DebateInput = ({ debateId, updateDebate, debateState }) => {
             });
             updateDebate(response.data);
             setUserMessage('');
+            setWordCount(0);
         } catch (error) {
             console.error("Error sending message:", error);
         } finally {
             setLoading(false);
         }
     };
+
+    const handleInputChange = (e) => {
+        const message = e.target.value;
+        setUserMessage(message);
+        setWordCount(message.split(/\s+/).filter(word => word.length > 0).length);
+    };
+
+    const getWordCountMessage = () => {
+        if (wordCount < 50) {
+            return { text: 'Too short', color: 'red' };
+        } else if (wordCount <= 100) {
+            return { text: 'Not bad', color: 'orange' };
+        } else if (wordCount <= 150) {
+            return { text: 'Good', color: 'yellowgreen' };
+        } else {
+            return { text: 'Great', color: 'green' };
+        }
+    };
+
+    const wordCountMessage = getWordCountMessage();
 
     const getPlaceholderText = () => {
         switch (debateState) {
@@ -36,17 +58,22 @@ const DebateInput = ({ debateId, updateDebate, debateState }) => {
     };
 
     return (
-        <div>
+        <div className="debate-input-container">
             <textarea
                 className="large-textarea"
                 value={userMessage}
-                onChange={(e) => setUserMessage(e.target.value)}
+                onChange={handleInputChange}
                 placeholder={getPlaceholderText()}
                 disabled={loading}
             />
-            <button onClick={sendMessage} disabled={loading}>
-                {loading ? 'Sending...' : 'Send'}
-            </button>
+            <div className="action-container">
+                <div className="word-count" style={{ color: wordCountMessage.color }}>
+                    Word Count: {wordCount} - {wordCountMessage.text}
+                </div>
+                <button onClick={sendMessage} disabled={loading || wordCount < 50}>
+                    {loading ? 'Sending...' : 'Send'}
+                </button>
+            </div>
             {loading && <div className="loading-indicator">Loading...</div>}
         </div>
     );

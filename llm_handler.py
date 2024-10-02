@@ -191,8 +191,8 @@ def responses_look_sensible(debate, debate_topic):
     1. ALL responses must be in English and must make sense. They cannot be gibberish or 
     nonsensical sentences.
     2. ALL responses must relate to the debate topic.
-    3. The 'Initial Opinion' should be at least 3 words.
-    4. The 'User Intro, 'User Rebuttal' and 'User Conclusion' should be at least 10 words, should not be overly repetitive, and should make coherent arguments.
+    3. The 'Initial Opinion' should give reasons for their opinion.
+    4. The 'User Intro, 'User Rebuttal' and 'User Conclusion' should not be overly repetitive, and should make coherent arguments.
     5. The 'Final Opinion' has more leeway but should not be nonsensical. Only flag serious and obvious issues with it.
     6. A little leeway must be given when it is obvious English is not the user's first language.
     
