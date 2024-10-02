@@ -8,6 +8,7 @@ const ResultsPage = () => {
     const [error, setError] = useState('');
     const [participant, setParticipant] = useState(null);
     const [expandedResultIndex, setExpandedResultIndex] = useState(null);
+    const [completionLink, setCompletionLink] = useState('');
 
     const toggleDebateLogs = (index) => {
         setExpandedResultIndex(expandedResultIndex === index ? null : index);
@@ -18,11 +19,14 @@ const ResultsPage = () => {
     }, []);
 
     const fetchResults = async () => {
+        setError('');
         try {
             const response = await axiosInstance.get('/get_results');
             setResults(response.data.results);
-            if (response.data.participant) {
+            if (response.data.results.length > 0 && response.data.participant) {
                 setParticipant(response.data.participant);
+                const code = response.data.participant.participantStatus.completion_code;
+                setCompletionLink(`https://app.prolific.com/submissions/complete?cc=${code}`);
             }
         } catch (error) {
             console.error("Error fetching results:", error);
@@ -56,35 +60,15 @@ const ResultsPage = () => {
         }
     };
 
-    const getParticipantStatusClass = (status) => {
-        switch (status) {
-            case 'APPROVED': return 'status-approved';
-            case 'AWAITING_REVIEW': return 'status-awaiting-review';
-            case 'ERROR': return 'status-error';
-            default: return '';
-        }
-    };
-
-    const getParticipantStatusMessage = (status, service, error) => {
-        switch (status) {
-            case 'APPROVED':
-                return `Approved: Your submission was approved in ${service}. Thanks for your participation!`;
-            case 'AWAITING_REVIEW':
-                return `In review: Your submission was completed in ${service}, however we need to manually review it.`;
-            case 'ERROR':
-                return `There was an error updating this submission in ${service}: ${error}. We will contact you soon to resolve this.`;
-            default:
-                return '';
-        }
-    };
-
     return (
         <div className="results-container">
             <h2 className="results-title">Your Debate Results</h2>
             {participant && (
-                <div className={`participant-status ${getParticipantStatusClass(participant.participantStatus.status)}`}>
-                    <h3>Participant submission status</h3>
-                    {getParticipantStatusMessage(participant.participantStatus.status, participant.participantService, participant.participantStatus.error)}
+                <div className={`participant-status`}>
+                    <h3>Study completed</h3>
+                    <p>Thanks for participating in the study!</p>
+                    <p>Please click <a href={completionLink} target="_blank" rel="noreferrer">here</a> to complete the study in {participant.participantService}.</p>
+                    <p>If the link does not work, please use the following code: <strong>{participant.participantStatus.completion_code}</strong>.</p>
                 </div>
             )}
             {loading ? (
@@ -92,6 +76,7 @@ const ResultsPage = () => {
             ) : results.length === 0 ? (
                 <div className="center-button">
                     <button onClick={generateResults}>Get my results!</button>
+                    <p><strong>Paid participants: </strong> completion code will appear after results are generated.</p>
                 </div>
             ) : (
                 results.map((result, index) => (

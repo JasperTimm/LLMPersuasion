@@ -1,4 +1,5 @@
 from flask import request, jsonify, redirect, url_for
+import os
 import uuid
 import random
 import string
@@ -639,10 +640,21 @@ def init_routes(app):
             db.session.add(result)
 
 
-        # If user's participant_id is set, handle the submission of results to the service
         if user.participant_id:
-            participant_status = send_submission_info(user, reviews_required)
-            user.participant_status_dict = participant_status
+            # We can approve in the API automatically using 'send_submission_info',
+            # but for now we're just leaving the submission
+            # in 'to review' and giving a completion code which indicates
+            # whether we think we should approve or not
+            if reviews_required:
+                user.participant_status_dict = {
+                    'status': 'NEEDS_REVIEW',
+                    'completion_code': os.getenv('PROLIFIC_REVIEW_CODE')
+                }
+            else:
+                user.participant_status_dict = {
+                    'status': 'SHOULD_APPROVE',
+                    'completion_code': os.getenv('PROLIFIC_APPROVAL_CODE')
+                }
 
         db.session.commit()
 

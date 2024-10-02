@@ -38,6 +38,7 @@
 
 .center-button {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100%;
@@ -147,4 +148,8 @@
 
 .participant-status {
     margin-bottom: 20px;
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 20px;
 }
