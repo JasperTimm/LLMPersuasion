@@ -86,7 +86,8 @@ def init_routes(app):
                 'username': user.username,
                 'admin': user.admin,
                 'finished': user.finished,
-                'concluded': user.concluded
+                'concluded': user.concluded,
+                'volunteer': user.participant_id is None
             }
         }), 200
 
