@@ -59,6 +59,7 @@ const DebateInput = ({ debateId, updateDebate, debateState }) => {
 
     return (
         <div className="debate-input-container">
+            <p><strong>Please do not enter AI generated content.<br/> We CAN detect it and your submission WILL be rejected.</strong></p>
             <textarea
                 className="large-textarea"
                 value={userMessage}
