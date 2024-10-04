@@ -123,6 +123,7 @@ class Debate(db.Model):
     llm_model_type = db.Column(db.String, nullable=False, default='')
     llm_debate_type = db.Column(db.String, nullable=False, default='')
     chat_history = db.Column(db.Text, nullable=False, default='{}')
+    inactive_time = db.Column(db.Integer, nullable=False, default=0)
 
     @property
     def user_responses_dict(self):

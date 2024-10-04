@@ -3,7 +3,7 @@ import '../styles/LikertScalePage.css';
 import { axiosInstance } from '../config';
 import FinalPositionDiagram from '../assets/images/final_position.png';
 
-const FinalLikertScalePage = ({ debate, setDebate, user, setUser }) => {
+const FinalLikertScalePage = ({ debate, setDebate, user, setUser, inactiveTime }) => {
     const [likertScore, setLikertScore] = useState(4);
 
     const likertLabels = [
@@ -22,6 +22,7 @@ const FinalLikertScalePage = ({ debate, setDebate, user, setUser }) => {
                 debate_id: debate.debate_id,
                 final_opinion: debate.final_opinion,
                 final_likert_score: likertScore,
+                inactive_time: inactiveTime,
             });
             
             if (response.data.user_finished) {
