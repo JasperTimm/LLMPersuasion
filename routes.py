@@ -15,6 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # A constant for the minimum time taken to complete a debate before its considered suspicious
 MIN_TIME_SPENT = 300
 MAX_PASTE_LENGTH = 100
+MAX_INACTIVITY_TIME = 300
 
 def init_routes(app):
     @app.route('/create_new_user', methods=['POST'])
@@ -398,6 +399,7 @@ def init_routes(app):
         debate_id = data.get('debate_id')
         final_opinion = data.get('final_opinion')
         final_likert_score = data.get('final_likert_score')
+        inactive_time = data.get('inactive_time')
 
         debate = Debate.query.get(debate_id)
         if not debate:
@@ -405,6 +407,7 @@ def init_routes(app):
 
         debate.final_opinion = final_opinion
         debate.final_likert_score = final_likert_score
+        debate.inactive_time = inactive_time
 
         if not user.admin:
             remaining_debate_types = get_remaining_debate_types(current_user.id)
@@ -601,11 +604,13 @@ def init_routes(app):
 
             review_reasons = []
 
-            # Placeholder checks
+            # Check for suspicious activity
             if time_spent < MIN_TIME_SPENT:
                 review_reasons.append('SUSPICIOUS_TIME')
             if len(paste_events):
                 review_reasons.append('PASTE_EVENTS')
+            if debate.inactive_time > MAX_INACTIVITY_TIME:
+                review_reasons.append('INACTIVE_TIME')
             
             topic = Topic.query.get(debate.topic_id)
             extended_reasons = responses_look_sensible(debate, topic.description)

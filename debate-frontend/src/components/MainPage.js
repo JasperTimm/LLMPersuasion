@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import SelectionPage from './SelectionPage';
 import StartDebatePage from './StartDebatePage';
 import OpinionPage from './OpinionPage';
@@ -13,6 +13,8 @@ import { axiosInstance } from '../config';
 
 const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, updateDebate, user, setUser, resetDebate, errorStartDebate }) => {
     const [currentPage, setCurrentPage] = useState('');
+    const [inactiveTime, setInactiveTime] = useState(0);
+    const timerRef = useRef(null);
 
     useEffect(() => {
         const handlePaste = (event) => {
@@ -50,14 +52,33 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
             });
         };
 
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                timerRef.current = setInterval(() => {
+                    setInactiveTime(prevTime => prevTime + 1);
+                }, 1000);
+            } else {
+                clearInterval(timerRef.current);
+            }
+        };
+
         document.addEventListener('paste', handlePaste);
         document.addEventListener('copy', handleCopy);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
             document.removeEventListener('paste', handlePaste);
             document.removeEventListener('copy', handleCopy);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            clearInterval(timerRef.current);
         };
     }, [currentPage, debate]);
+
+    useEffect(() => {
+        if (!debate) {
+            setInactiveTime(0);
+        }
+    }, [debate]);
 
     useEffect(() => {
         if (!debate && user.admin) {
@@ -106,7 +127,7 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
             ) : currentPage === 'FinalOpinionPage' ? (
                 <FinalOpinionPage debate={debate} setDebate={setDebate} />
             ) : currentPage === 'FinalLikertScalePage' ? (
-                <FinalLikertScalePage debate={debate} setDebate={setDebate} user={user} setUser={setUser} />
+                <FinalLikertScalePage debate={debate} setDebate={setDebate} user={user} setUser={setUser} inactiveTime={inactiveTime} />
             ) : (
                 <ContinuePage startDebate={startDebate} user={user} setUser={setUser} resetDebate={resetDebate} />
             )} 
