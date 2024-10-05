@@ -1,0 +1,57 @@
+/* InstructionPage.css */
+
+.instruction-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+.instruction-page h1 {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.instruction-page p {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.instruction-page ol {
+    list-style-position: inside;
+    padding-left: 20px;
+}
+
+.instruction-page li {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #444;
+}
+
+.instruction-page li strong {
+    color: #000;
+}
+
+.instruction-page button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #28a745;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.instruction-page button:hover {
+    background-color: #218838;
+}
