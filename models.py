@@ -19,6 +19,7 @@ class User(UserMixin, db.Model):
     finished = db.Column(db.Boolean, nullable=False, default=False)
     concluded = db.Column(db.Boolean, nullable=False, default=False)
     user_info = db.relationship('UserInfo', backref='user', uselist=False)
+    quiz_completed = db.Column(db.Boolean, nullable=False, default=False)
     participant_id = db.Column(db.String(150), nullable=True)
     participant_service = db.Column(db.String(150), nullable=True)
     participant_status = db.Column(db.Text, nullable=True, default='{}')

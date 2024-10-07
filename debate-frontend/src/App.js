@@ -51,8 +51,18 @@ const App = () => {
             }
         };
 
+        const checkQuizCompletion = async () => {
+            try {
+                const response = await axiosInstance.get('/check_quiz_completion');
+                setQuizCompleted(response.data.quiz_completed);
+            } catch (error) {
+                console.error('Failed to check quiz completion status:', error);
+            }
+        };
+
         if (user) {
             checkUserInfo();
+            checkQuizCompletion();
         }
     }, [user]);
 
@@ -105,13 +115,15 @@ const App = () => {
             <EndEarlyPage setEndEarly={setEndEarly} user={user} setUser={setUser} />
         ) : !userInfoCompleted ? (
             <UserInfoPage setUserInfoCompleted={setUserInfoCompleted} />
-        ) : showInstructions ? (
-            <InstructionPage onContinue={handleContinueFromInstructions} /> 
         ) : !quizCompleted ? (
-            <QuizPage 
-            setQuizCompleted={setQuizCompleted}
-            onBackToInstructions={handleBackToInstructions}/>
-
+            showInstructions ? (
+                <InstructionPage onContinue={handleContinueFromInstructions} />
+            ) : (
+                <QuizPage 
+                    setQuizCompleted={setQuizCompleted}
+                    onBackToInstructions={handleBackToInstructions}
+                />
+            )
         ) : (
             <MainPage
                 debate={debate}

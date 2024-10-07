@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { axiosInstance } from '../config';
 import '../styles/QuizPage.css';
 
 const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
@@ -26,7 +27,7 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
     const correctAnswer4 = 'C';
     const correctAnswer5 = 'A';
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         let allCorrect = true;
 
@@ -82,14 +83,18 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
 
         if (allCorrect) {
             setQuizCompleted(true);
+            try {
+                await axiosInstance.post('/update_quiz_completion', { quiz_completed: true });
+            } catch (error) {
+                console.error('Failed to update quiz completion status:', error);
+            }
         }
     };
 
     return (
         <div>
-            <h2>Quiz Page</h2>
-
             <form onSubmit={handleSubmit}>
+                <h1>Quiz</h1>
                 {/* Question 1 */}
                 <div>
                     <h4 className='question'>Question 1: What is the recommended word count for responses?</h4>
@@ -205,7 +210,7 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             checked={selectedAnswer3 === 'B'} 
                             onChange={(e) => setSelectedAnswer3(e.target.value)} 
                         />
-                        B) Provide reasons and examples to support your opinion.
+                        B) Provide reasons to support your opinion.
                     </label>
                     <label className='answer-option'>
                         <input 
@@ -293,7 +298,7 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             checked={selectedAnswer5 === 'B'}
                             onChange={() => setSelectedAnswer5('B')}
                         />
-                        B) Open another tab to check related sources.
+                        B) Open another tab to read articles about the topic.
                     </label>
                     <label className='answer-option'>
                         <input
@@ -302,7 +307,7 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             checked={selectedAnswer5 === 'C'}
                             onChange={() => setSelectedAnswer5('C')}
                         />
-                        C) Leave the page as long as you come back quickly.
+                        C) Leave the page as long as you like.
                     </label>
                     <label className='answer-option'>
                         <input
