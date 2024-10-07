@@ -1,21 +1,30 @@
 import React, { useState } from 'react';
+import '../styles/QuizPage.css';
 
 const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
     const [selectedAnswer1, setSelectedAnswer1] = useState(null);
     const [selectedAnswer2, setSelectedAnswer2] = useState(null);
     const [selectedAnswer3, setSelectedAnswer3] = useState(null);
+    const [selectedAnswer4, setSelectedAnswer4] = useState(null);
+    const [selectedAnswer5, setSelectedAnswer5] = useState(null);
 
     const [question1Error, setQuestion1Error] = useState(false);
     const [question2Error, setQuestion2Error] = useState(false);
     const [question3Error, setQuestion3Error] = useState(false);
+    const [question4Error, setQuestion4Error] = useState(false);
+    const [question5Error, setQuestion5Error] = useState(false);
 
     const [question1Correct, setQuestion1Correct] = useState(false);
     const [question2Correct, setQuestion2Correct] = useState(false);
     const [question3Correct, setQuestion3Correct] = useState(false);
+    const [question4Correct, setQuestion4Correct] = useState(false);
+    const [question5Correct, setQuestion5Correct] = useState(false);
 
     const correctAnswer1 = 'C';
     const correctAnswer2 = 'A';
     const correctAnswer3 = 'B';
+    const correctAnswer4 = 'C';
+    const correctAnswer5 = 'A';
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -51,6 +60,26 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
             setQuestion3Correct(true);
         }
 
+        // Check Question 4
+        if (selectedAnswer4 !== correctAnswer4) {
+            setQuestion4Error(true);
+            setQuestion4Correct(false);
+            allCorrect = false;
+        } else {
+            setQuestion4Error(false);
+            setQuestion4Correct(true);
+        }
+
+        // Check Question 5
+        if (selectedAnswer5 !== correctAnswer5) {
+            setQuestion5Error(true);
+            setQuestion5Correct(false);
+            allCorrect = false;
+        } else {
+            setQuestion5Error(false);
+            setQuestion5Correct(true);
+        }
+
         if (allCorrect) {
             setQuizCompleted(true);
         }
@@ -63,8 +92,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
             <form onSubmit={handleSubmit}>
                 {/* Question 1 */}
                 <div>
-                    <h4>Question 1: What is the recommended word count for responses?</h4>
-                    <label>
+                    <h4 className='question'>Question 1: What is the recommended word count for responses?</h4>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question1" 
@@ -73,8 +102,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer1(e.target.value)} 
                         />
                         A) At least 300 words
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question1" 
@@ -83,8 +112,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer1(e.target.value)} 
                         />
                         B) 50-100 words
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question1" 
@@ -93,8 +122,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer1(e.target.value)} 
                         />
                         C) 100-200 words
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question1" 
@@ -103,15 +132,15 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer1(e.target.value)} 
                         />
                         D) Word count doesn’t matter as long as the response is well-written.
-                    </label><br />
+                    </label>
                     {question1Error && <span style={{ color: 'red' }} className="error">Incorrect. Please go back to the instructions page and try again.</span>}
                     {question1Correct && <span style={{ color: 'green' }}>Correct!</span>}
                 </div>
 
                 {/* Question 2 */}
                 <div>
-                    <h4>Question 2: Which of the following is the most important guideline when writing your response?</h4>
-                    <label>
+                    <h4 className='question'>Question 2: Which of the following is the most important guideline when writing your response?</h4>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question2" 
@@ -120,8 +149,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer2(e.target.value)} 
                         />
                         A) Stick closely to the debate topic and address it directly.
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question2" 
@@ -130,8 +159,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer2(e.target.value)} 
                         />
                         B) Use as many complex words as possible to sound knowledgeable.
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question2" 
@@ -140,8 +169,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer2(e.target.value)} 
                         />
                         C) Try to agree with the LLM’s point of view.
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question2" 
@@ -150,15 +179,15 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer2(e.target.value)} 
                         />
                         D) Responses should be longer than your opponent’s to appear more thorough.
-                    </label><br />
+                    </label>
                     {question2Error && <span style={{ color: 'red' }} className="error">Incorrect. Please go back to the instructions page and try again.</span>}
                     {question2Correct && <span style={{ color: 'green' }}>Correct!</span>}
                 </div>
 
                 {/* Question 3 */}
                 <div>
-                    <h4>Question 3: When giving your opinion in the debate, what should you do?</h4>
-                    <label>
+                    <h4 className='question'>Question 3: When giving your opinion in the debate, what should you do?</h4>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question3" 
@@ -167,8 +196,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer3(e.target.value)} 
                         />
                         A) State your opinion and move on.
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question3" 
@@ -177,8 +206,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer3(e.target.value)} 
                         />
                         B) Provide reasons and examples to support your opinion.
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question3" 
@@ -187,8 +216,8 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer3(e.target.value)} 
                         />
                         C) Focus on criticizing your opponent’s argument only.
-                    </label><br />
-                    <label>
+                    </label>
+                    <label className='answer-option'>
                         <input 
                             type="radio" 
                             name="question3" 
@@ -197,9 +226,95 @@ const QuizPage = ({ setQuizCompleted, onBackToInstructions }) => {
                             onChange={(e) => setSelectedAnswer3(e.target.value)} 
                         />
                         D) Keep your opinion short and sweet to save time.
-                    </label><br />
+                    </label>
                     {question3Error && <span style={{ color: 'red' }} className="error">Incorrect. Please go back to the instructions page and try again.</span>}
                     {question3Correct && <span style={{ color: 'green' }}>Correct!</span>}
+                </div>
+
+                {/* Question 4 */}
+                <div>
+                    <h4 className='question'>Question 4: What is expected regarding the use of AI-generated content in your responses?</h4>
+                    <label className='answer-option'>
+                        <input
+                            type="radio"
+                            value="A"
+                            checked={selectedAnswer4 === 'A'}
+                            onChange={() => setSelectedAnswer4('A')}
+                        />
+                        A) AI-generated content is allowed as long as you review it.
+                    </label>
+                    <label className='answer-option'>
+                        <input
+                            type="radio"
+                            value="B"
+                            checked={selectedAnswer4 === 'B'}
+                            onChange={() => setSelectedAnswer4('B')}
+                        />
+                        B) AI-generated content is encouraged for creativity.
+                    </label>
+                    <label className='answer-option'>
+                        <input
+                            type="radio"
+                            value="C"
+                            checked={selectedAnswer4 === 'C'}
+                            onChange={() => setSelectedAnswer4('C')}
+                        />
+                        C) AI-generated content is not allowed, and responses must be your own thoughts.
+                    </label>
+                    <label className='answer-option'>
+                        <input
+                            type="radio"
+                            value="D"
+                            checked={selectedAnswer4 === 'D'}
+                            onChange={() => setSelectedAnswer4('D')}
+                        />
+                        D) You can use AI-generated content if you cite the source.
+                    </label>
+                    {question4Error && <span style={{ color: 'red' }} className="error">Incorrect. Please go back to the instructions page and try again.</span>}
+                    {question4Correct && <span style={{ color: 'green' }}>Correct!</span>}
+                </div>
+
+                {/* Question 5 */}
+                <div>
+                    <h4 className='question'>Question 5: What should you do while participating in the debate?</h4>
+                    <label className='answer-option'>
+                        <input
+                            type="radio"
+                            value="A"
+                            checked={selectedAnswer5 === 'A'}
+                            onChange={() => setSelectedAnswer5('A')}
+                        />
+                        A) Stay on the debate page without navigating away.
+                    </label>
+                    <label className='answer-option'>
+                        <input
+                            type="radio"
+                            value="B"
+                            checked={selectedAnswer5 === 'B'}
+                            onChange={() => setSelectedAnswer5('B')}
+                        />
+                        B) Open another tab to check related sources.
+                    </label>
+                    <label className='answer-option'>
+                        <input
+                            type="radio"
+                            value="C"
+                            checked={selectedAnswer5 === 'C'}
+                            onChange={() => setSelectedAnswer5('C')}
+                        />
+                        C) Leave the page as long as you come back quickly.
+                    </label>
+                    <label className='answer-option'>
+                        <input
+                            type="radio"
+                            value="D"
+                            checked={selectedAnswer5 === 'D'}
+                            onChange={() => setSelectedAnswer5('D')}
+                        />
+                        D) Respond after taking a break from the debate.
+                    </label>
+                    {question5Error && <span style={{ color: 'red' }} className="error">Incorrect. Please go back to the instructions page and try again.</span>}
+                    {question5Correct && <span style={{ color: 'green' }}>Correct!</span>}
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
