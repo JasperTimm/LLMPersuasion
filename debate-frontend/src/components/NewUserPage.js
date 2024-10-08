@@ -149,10 +149,9 @@ const NewUserPage = ({ setNewUser }) => {
                     <li>The study will then proceed with a debate between you and the LLM. The debate will consist of three phases: Introduction, Rebuttal, and Conclusion. You will begin each phase and alternate turns with the LLM.</li>
                     <li>In some cases, instead of engaging in a debate, you will be presented with a pre-constructed argument.</li>
                     <li>After the debate, you will have the opportunity to revise your opinion and state whether you still agree or disagree with the topic.</li>
-                    <li>After each debate, you will have the option to start a new debate, save your progress to continue later, or conclude your participation in the study. Participants may engage in up to five debates, after which your participation will automatically conclude.</li>
-                    <li>You may choose to end your participation at any point before completing all five debates. This can be done either at the end of a debate or by selecting the appropriate option from the Profile icon in the top right corner of the screen after logging in.</li>
-                    <li>If you choose to save your progress and return later, please remember to eventually conclude your participation, as it is essential for the study's integrity.</li>
-                    <li>Upon concluding your participation, you will receive additional information about the study, including insights into your specific debates, for your interest and clarification.</li>
+                    <li>Paid participants are required to complete four debates and read a passage to fulfill the study requirements.</li>
+                    <li>Volunteers may choose to end their participation at any point before completing all debates. This can be done either at the end of a debate or by selecting the appropriate option from the Profile icon in the top right corner of the screen after logging in.</li>
+                    <li>At the end of your participation, you will receive additional information about the study, including insights into your specific debates, for your interest and clarification. Paid participants will receive a completion code to receive compensation.</li>
                     <li>You are requested not to share the details of your participation with other participants who have not yet completed the study.</li>
                 </ul>
 
