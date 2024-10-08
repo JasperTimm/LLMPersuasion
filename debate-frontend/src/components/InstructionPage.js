@@ -21,7 +21,10 @@ const InstructionPage = ({ onContinue }) => {
         </li>
         <li>
           <strong>Remain on the page:</strong> Please <strong>do not navigate away from the page</strong> while participating in the debate. We track your inactive time and it may affect your submission.
-        </li>       
+        </li>
+        <li>
+          <strong>Do not refresh:</strong> Please <strong>do not refresh the page</strong> while participating in the debate or your progress will be lost.
+        </li>
       </ol>
       <button onClick={onContinue}>Continue to Quiz</button>
     </div>

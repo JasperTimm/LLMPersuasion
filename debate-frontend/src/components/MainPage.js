@@ -110,6 +110,10 @@ const MainPage = ({ debate, startDebate, setDebate, debateHistory, chatHistory, 
                 <div className="debate-topic">
                     <span className="debate-topic-label">Debate Topic:</span>
                     <span>{debate.topic}</span>
+                    <br />
+                    <div className="warning-notice">
+                        <strong>Do NOT refresh the page or your progress will be lost</strong>
+                    </div>
                 </div>
             ) : null}
             {   currentPage === 'SelectionPage' ? (

@@ -26,3 +26,16 @@
     border-radius: 8px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
 }
+
+.warning-notice {
+    display: inline-block;      /* Shrink the box to fit the content */
+    margin: 20px auto 0 auto;   /* Center the box horizontally */
+    padding: 15px;    /* Add padding inside the warning box */
+    background-color: #f5eda6; /* Bright yellow background */
+    border: 1px solid #fbc02d; /* Slightly darker yellow border */
+    border-radius: 4px;
+    color: #333;      /* Dark text color for readability */
+    font-weight: bold;
+    text-align: center;
+    font-size: 0.8em;
+}
