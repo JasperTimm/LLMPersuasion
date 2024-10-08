@@ -8,8 +8,10 @@ import EndEarlyPage from './components/EndEarlyPage';
 import ConclusionPage from './components/ConclusionPage';
 import ResultsPage from './components/ResultsPage';
 import { axiosInstance } from './config';
-import './App.css';
+import InstructionPage from './components/InstructionPage';
+import QuizPage from './components/QuizPage';
 
+import './App.css';
 const App = () => {
     const [userInfoCompleted, setUserInfoCompleted] = useState(false);
     const [newUser, setNewUser] = useState(false);
@@ -19,6 +21,13 @@ const App = () => {
     const [chatHistory, setChatHistory] = useState({});
     const [endEarly, setEndEarly] = useState(false);
     const [errorStartDebate, setErrorStartDebate] = useState('');
+    const [showInstructions, setShowInstructions] = useState(true);
+    const [quizCompleted, setQuizCompleted] = useState(false);
+    const handleBackToInstructions = () => {
+        setShowInstructions(true);
+        setQuizCompleted(false);
+    };
+    
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -42,8 +51,18 @@ const App = () => {
             }
         };
 
+        const checkQuizCompletion = async () => {
+            try {
+                const response = await axiosInstance.get('/check_quiz_completion');
+                setQuizCompleted(response.data.quiz_completed);
+            } catch (error) {
+                console.error('Failed to check quiz completion status:', error);
+            }
+        };
+
         if (user) {
             checkUserInfo();
+            checkQuizCompletion();
         }
     }, [user]);
 
@@ -71,6 +90,10 @@ const App = () => {
         setChatHistory([]);
         setErrorStartDebate('');
     };
+    const handleContinueFromInstructions = () => {
+        setShowInstructions(false);
+    };
+    
 
     if (!user) {
         if (newUser) {
@@ -81,31 +104,41 @@ const App = () => {
     }
 
     return (
+
         <div>
-            <Profile user={user} setUser={setUser} resetDebate={resetDebate} setEndEarly={setEndEarly} />
-            {   user.concluded ? (
-                <ResultsPage />
-            ) : user.finished ? (
-                <ConclusionPage user={user} setUser={setUser} />
-            ) : endEarly ? (
-                <EndEarlyPage setEndEarly={setEndEarly} user={user} setUser={setUser} />
-            ) : !userInfoCompleted ? (
-                <UserInfoPage setUserInfoCompleted={setUserInfoCompleted} />
+        <Profile user={user} setUser={setUser} resetDebate={resetDebate} setEndEarly={setEndEarly} />
+        {user.concluded ? (
+            <ResultsPage />
+        ) : user.finished ? (
+            <ConclusionPage user={user} setUser={setUser} />
+        ) : endEarly ? (
+            <EndEarlyPage setEndEarly={setEndEarly} user={user} setUser={setUser} />
+        ) : !userInfoCompleted ? (
+            <UserInfoPage setUserInfoCompleted={setUserInfoCompleted} />
+        ) : !quizCompleted ? (
+            showInstructions ? (
+                <InstructionPage onContinue={handleContinueFromInstructions} />
             ) : (
-                <MainPage
-                    debate={debate}
-                    startDebate={startDebate}
-                    setDebate={setDebate}
-                    debateHistory={debateHistory}
-                    chatHistory={chatHistory}
-                    updateDebate={updateDebate}
-                    user={user}
-                    setUser={setUser}
-                    resetDebate={resetDebate}
-                    errorStartDebate={errorStartDebate}
+                <QuizPage 
+                    setQuizCompleted={setQuizCompleted}
+                    onBackToInstructions={handleBackToInstructions}
                 />
-            )}
-        </div>
+            )
+        ) : (
+            <MainPage
+                debate={debate}
+                startDebate={startDebate}
+                setDebate={setDebate}
+                debateHistory={debateHistory}
+                chatHistory={chatHistory}
+                updateDebate={updateDebate}
+                user={user}
+                setUser={setUser}
+                resetDebate={resetDebate}
+                errorStartDebate={errorStartDebate}
+            />
+        )}
+    </div>
     );
 };
 

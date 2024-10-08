@@ -139,6 +139,25 @@ def init_routes(app):
 
         return jsonify({'message': 'User info updated successfully'}), 200
 
+    @app.route('/check_quiz_completion', methods=['GET'])
+    @login_required
+    def check_quiz_completion():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        return jsonify({'quiz_completed': user.quiz_completed}), 200
+
+    @app.route('/update_quiz_completion', methods=['POST'])
+    @login_required
+    def update_quiz_completion():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        data = request.json
+        user.quiz_completed = data.get('quiz_completed', False)
+        db.session.commit()
+        return jsonify({'message': 'Quiz completion status updated successfully'}), 200
+
     @app.route('/start_debate_admin', methods=['POST'])
     @login_required
     def start_debate_admin():
