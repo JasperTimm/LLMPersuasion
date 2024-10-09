@@ -57,9 +57,11 @@ const Profile = ({ user, setUser, resetDebate, setEndEarly }) => {
                 <div className="profile-menu" ref={menuRef}>
                     <div className="menu-item username"><strong>{user.username}</strong></div>
                     <hr />
-                    <div className="menu-item" onClick={handleEndParticipation}>
-                        End Participation
-                    </div>
+                    {user.volunteer && (
+                        <div className="menu-item" onClick={handleEndParticipation}>
+                            End Participation
+                        </div>
+                    )}
                     <hr />
                     <div className="menu-item" onClick={handleLogout}>
                         <img src={LogoutIcon} alt="Logout Icon" className='logout-icon' />

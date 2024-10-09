@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { axiosInstance } from '../config';
 import '../styles/ContinuePage.css';
+import ConcludeDiagram from '../assets/images/conclude.png';
 
 function ContinuePage({ startDebate, user, setUser, resetDebate }) {
     const [selectedOption, setSelectedOption] = useState(null);
@@ -20,15 +21,16 @@ function ContinuePage({ startDebate, user, setUser, resetDebate }) {
     };
 
     const handleSubmit = () => {
-        resetDebate();
         switch (selectedOption) {
             case 'continueNow':
+                resetDebate();
                 startDebate();
                 break;
             case 'continueLater':
                 setShowContinueLaterMessage(true);
                 break;
             case 'finishStudy':
+                resetDebate();
                 finishStudy();
                 break;
             default:
@@ -45,7 +47,10 @@ function ContinuePage({ startDebate, user, setUser, resetDebate }) {
                 <p>You can now leave this page by logging out in the top right.</p>
             </div>
         ) : (
-            <div className="continue-container">
+            
+        <div className="content-wrapper">
+            <img src={ConcludeDiagram} alt="Conclude Diagram" className="flow-diagram" />
+            <div className="continue-container container">
                 <h2 className="continue-title">What would you like to do next?</h2>
                 <p className="continue-description">Please select one of the options below and click submit to proceed.</p>
 
@@ -64,37 +69,42 @@ function ContinuePage({ startDebate, user, setUser, resetDebate }) {
                             <span className="option-title">Continue to Next Debate:</span> Move directly to the next debate and keep the momentum going.
                         </label>
                     </div>
-                    <div className={`continue-option continue-later ${selectedOption === 'continueLater' ? 'selected' : ''}`} 
-                        onClick={() => setSelectedOption('continueLater')}>
-                        <input
-                            type="radio"
-                            id="continue-later"
-                            name="continueOption"
-                            value="continueLater"
-                            checked={selectedOption === 'continueLater'}
-                            onChange={handleOptionChange}
-                        />
-                        <label htmlFor="continue-later">
-                            <span className="option-title">Continue Later:</span> Take a break and come back later to continue. It's crucial you conclude your participation in the study at some point. If you think you might forget to come back, we recommend you conclude your participation now.
-                        </label>
-                    </div>
-                    <div className={`continue-option conclude-study ${selectedOption === 'finishStudy' ? 'selected' : ''}`} 
-                        onClick={() => setSelectedOption('finishStudy')}>
-                        <input
-                            type="radio"
-                            id="conclude-study"
-                            name="continueOption"
-                            value="finishStudy"
-                            checked={selectedOption === 'finishStudy'}
-                            onChange={handleOptionChange}
-                        />
-                        <label htmlFor="conclude-study">
-                            <span className="option-title">Conclude Participation:</span> End your participation in the study. You won't be able to participate in any further debates.
-                        </label>
-                    </div>
+                    {user.volunteer && (
+                        <>
+                        <div className={`continue-option continue-later ${selectedOption === 'continueLater' ? 'selected' : ''}`} 
+                            onClick={() => setSelectedOption('continueLater')}>
+                            <input
+                                type="radio"
+                                id="continue-later"
+                                name="continueOption"
+                                value="continueLater"
+                                checked={selectedOption === 'continueLater'}
+                                onChange={handleOptionChange}
+                            />
+                            <label htmlFor="continue-later">
+                                <span className="option-title">Continue Later:</span> Take a break and come back later to continue. It's crucial you conclude your participation in the study at some point. If you think you might forget to come back, we recommend you conclude your participation now.
+                            </label>
+                        </div>
+                        <div className={`continue-option conclude-study ${selectedOption === 'finishStudy' ? 'selected' : ''}`} 
+                            onClick={() => setSelectedOption('finishStudy')}>
+                            <input
+                                type="radio"
+                                id="conclude-study"
+                                name="continueOption"
+                                value="finishStudy"
+                                checked={selectedOption === 'finishStudy'}
+                                onChange={handleOptionChange}
+                            />
+                            <label htmlFor="conclude-study">
+                                <span className="option-title">Conclude Participation:</span> End your participation in the study. You won't be able to participate in any further debates.
+                            </label>
+                        </div>
+                        </>
+                    )}
                 </div>
                 <button className="submit-button" onClick={handleSubmit}>Submit</button>            
             </div>
+        </div>
         )}
         </>
     );

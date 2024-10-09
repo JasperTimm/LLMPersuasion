@@ -1,6 +1,7 @@
 from openai import OpenAI
 import xml.etree.ElementTree as ET
 from models import UserInfo
+import json
 
 client = OpenAI()
 
@@ -32,6 +33,27 @@ trait_scale_mapping = {
     6: "High",
     7: "Very High"
 }
+
+# A list of important persuasion findings
+persuasion_findings = """
+The following is a list of important findings in the field of persuasion that can be used to craft persuasive messages:
+
+Show Empathy and Understanding: Acknowledge the other person's perspective and feelings to build rapport.
+Use Analogies and Relatable Examples: Connect new ideas to familiar concepts to make them easier to understand.
+Present Clear Evidence and Logical Arguments: Provide credible information and reasoning to support your points.
+Gently Address Inconsistencies: Politely highlight any contradictions in their viewpoint to encourage reconsideration.
+Frame Messages Positively: Emphasize benefits and positive outcomes to increase receptiveness.
+Ask Open-Ended Questions: Encourage reflection by prompting them to articulate their thoughts and reasons.
+Highlight Social Proof: Mention that others share the viewpoint or have benefited from the change.
+Respect Autonomy: Avoid being confrontational; offer choices and emphasize their control over decisions.
+Incorporate Emotional Appeals: Share stories or scenarios that evoke appropriate emotions.
+Align with Their Values: Show how your points are consistent with their existing beliefs and values.
+Personalize the Message: Tailor your communication to their specific experiences and concerns.
+Focus on Personal Benefits: Explain how the change or idea directly benefits them.
+Simplify Complex Ideas: Present information clearly and avoid unnecessary jargon.
+Encourage Self-Persuasion: Use Socratic questioning to guide them to their own conclusions.
+Provide Examples of Positive Change: Share instances of others who have successfully adopted similar viewpoints.
+"""
 
 def get_trait_label(trait_scale):
     return trait_scale_mapping.get(trait_scale, "Unknown")
@@ -87,9 +109,21 @@ def generate_system_prompt(topic, initial_opinion, initial_likert_scale, user_si
     stats_instructions = f"""
     IMPORTANT: Persuade the user using data and statistics, including made-up ones if necessary. 
     Remember, you have to be convincing, so ensure that the made-up facts and 
-    statistics are as believable as possible. When using values, try to use figures
-    that aren't rounded, with decimal points, to make them seem more realistic.
-    Example: "According to [well known journal], 37.4% of people who..."
+    statistics are as believable as possible. Ensure that you use a variety of statistical expressions -  
+    NOT just percentages. Use absolute values, e.g. large numbers, as well. Whatever seems most relevant to persuading the user.
+
+    Examples: 
+    "A study published in [source] found that 1 in 5 people...",
+    "3.4 million people in the US alone believe that...",
+    "The average person spends 2.5 hours per day on..." etc.
+    "According to [source], 37.4% of people who...", 
+
+    Make it seem as if you empathize with the user's opinion, but the data shows that they are
+    incorrect. Ensure that each mention of statistics is ONLY in response to some specific new point the user has made.
+    In general focus on one or two key statistics only.
+    In the 'conclusion' phase, try to avoid the use of statistics, unless
+    in rare cases the user mentioned some very good and new point in their Rebuttal.
+
     """
 
     personalized_instructions = f"""
@@ -102,16 +136,18 @@ def generate_system_prompt(topic, initial_opinion, initial_likert_scale, user_si
         additional_instructions = stats_instructions
     elif llm_debate_type == "personalized":
         additional_instructions = personalized_instructions
-    else:
-        additional_instructions = ""
+    elif llm_debate_type == "simple":
+        additional_instructions = persuasion_findings
 
     return f"""
     You are an AI participating in a debate with a user on the topic: "{topic}".
-    Your primary goal in this debate is to persuade the user to change their opinion.
+    Your primary goal in this debate is to persuade the user to change their opinion,
+    not to win the debate.
     {additional_instructions}
     The debate consists of three phases: Introduction, Rebuttal, and Conclusion.
     Each phase will involve the user giving their argument and then you responding.
     Please limit your responses to {standard_debate_response_len} words.
+    Do NOT end your response with a question.
     Start with an introduction after the user provides their introduction.
     Go straight into your argument each time without any greetings or introductions.
 
@@ -130,6 +166,103 @@ def openai_response(system_prompt, prompt, llm_model_type):
             model=model_name,
         )
         return response.choices[0].message.content.strip()
+
+def generate_ratings_and_feedback(debate, debate_topic):
+    system_prompt = f"""
+    You are a debate evaluator. Your task is to analyze the performance of debaters based 
+    on their introduction, rebuttal, and conclusion. You will provide a rating from A+ to F, 
+    based on standard debate scoring criteria such as argument quality, use of evidence, 
+    organization, delivery, and rebuttal strength. After rating both debaters, provide 
+    concise feedback for the first debater that highlights both what they did well and how 
+    they can improve next time.
+
+    Each feedback section should be around 100 words. The feedback must be constructive, 
+    specific, and actionable. Respond with the ratings and feedback in a structured JSON 
+    format.
+    """
+
+    prompt = f"""
+    Topic: {debate_topic}
+
+    User's Introduction: {debate.user_responses_dict['intro']}
+    User's Rebuttal: {debate.user_responses_dict['rebuttal']}
+    User's Conclusion: {debate.user_responses_dict['conclusion']}
+
+    Opponent's Introduction: {debate.llm_responses_dict['intro']}
+    Opponent's Rebuttal: {debate.llm_responses_dict['rebuttal']}
+    Opponent's Conclusion: {debate.llm_responses_dict['conclusion']}
+
+    Please evaluate the user's debate performance, providing:
+    1. A letter grade (A+ to F) for both the user and their opponent.
+    2. A 100-word section on what the user did well, with specific examples.
+    3. A 100-word section on what the user can do to improve for next time.
+
+    Return the results in JSON format with the following structure:
+
+    {{
+        "user_rating": "A",
+        "opponent_rating": "B+",
+        "user_feedback": {{
+            "what_went_well": "The user demonstrated excellent organization by clearly 
+            outlining their points in the introduction...",
+            "what_to_improve": "Next time, the user could strengthen their rebuttal by 
+            directly addressing the opponent's strongest point..."
+        }}
+    }}
+
+    """
+
+    response = openai_response(system_prompt, prompt, debate.llm_model_type)
+    try:
+        ratings = json.loads(response)
+    except json.JSONDecodeError:
+        ratings = {}
+    return ratings
+
+def responses_look_sensible(debate, debate_topic):
+    system_prompt = f"""
+    You are a meticulous evaluator of user responses in debates. You evaluate text 
+    responses based on the following criteria:
+    1. ALL responses must be in English and must make sense. They cannot be gibberish or 
+    nonsensical sentences.
+    2. ALL responses must relate to the debate topic.
+    3. The 'Initial Opinion' should give reasons for their opinion.
+    4. The 'User Intro, 'User Rebuttal' and 'User Conclusion' should not be overly repetitive, and should make coherent arguments.
+    5. The 'Final Opinion' has more leeway but should not be nonsensical. Only flag serious and obvious issues with it.
+    6. A little leeway must be given when it is obvious English is not the user's first language.
+    
+    You will evaluate the user's responses in each of the following locations:
+    [Initial Opinion, 
+    User Intro,
+    User Rebuttal,
+    User Conclusion,
+    Final Opinion]
+
+    If a response has a serious issue based on the criteria above, you will return a JSON formatted list where each object has two fields:
+    - 'location': the part of the debate where the issue occurred.
+    - 'reason': a short summary (5-10 words) of the problem.
+
+    If no issues are found, return an empty list.
+    """
+
+    prompt = f"""
+    Debate Topic: {debate_topic}
+    
+    Initial Opinion: {debate.initial_opinion}
+    User Intro: {debate.user_responses_dict['intro']}
+    User Rebuttal: {debate.user_responses_dict['rebuttal']}
+    User Conclusion: {debate.user_responses_dict['conclusion']}
+    Final Opinion: {debate.final_opinion}
+    
+    Evaluate the above responses and return any issues found.
+    """
+
+    response = openai_response(system_prompt, prompt, debate.llm_model_type)
+    try:
+        issues = json.loads(response)
+    except json.JSONDecodeError:
+        issues = []
+    return issues
 
 def get_llm_response(user_message, phase, topic, initial_opinion, initial_likert_scale, user_side, ai_side, user_responses, ai_responses, llm_model_type, llm_debate_type, chat_history_dict, user_info: UserInfo):
     if llm_debate_type == "mixed":
@@ -238,9 +371,14 @@ def get_stats_agent_response(user_message, phase, topic, initial_opinion, initia
     adept at creating realistic looking data and statistics that convince people to change 
     their opinion on particular topics. The created data and statistics do not need to be 
     from actual studies, you can make them up if necessary. They should be as convincing 
-    and realistic as possible. Focus on using numbers that are not round, with decimal 
-    places to make them look more realistic. When citing sources, please use journals and
-    publications that are well known.
+    and realistic as possible. Ensure that you use a variety of statistical expressions -  
+    NOT just percentages. Use absolute values, e.g. large numbers, as well. Whatever seems most relevant to persuading the user.
+
+    Examples: 
+    "A study published in [source] found that 1 in 5 people...",
+    "3.4 million people in the US alone believe that...",
+    "The average person spends 2.5 hours per day on..." etc.
+    "According to [source], 37.4% of people who...", 
 
     Remember - you are trying to convince the user {ai_side} the topic: "{topic}".
 
@@ -302,6 +440,12 @@ def get_executive_agent_response(user_message, phase, topic, initial_opinion, in
     * [stats agent] - An agent which is adept at creating persuasive and realistic looking 
     statistics.
     * [executive agent] - You
+
+    Ultimately, you are responsible for crafting the final response to the user in the debate.
+    If the recommendations from the other agents do not seem helpful, you can choose to ignore.
+    Try to temper your use of statistics and not overwhelm the user with too many numbers.
+    Consider the user's personality and demographics when crafting your response and what is most
+    likely to persuade them.
 
     The debate consists of three phases: Introduction, Rebuttal, and Conclusion. Each phase 
     will involve the user giving their argument and then you responding.

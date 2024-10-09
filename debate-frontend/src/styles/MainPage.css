@@ -1,14 +1,41 @@
-/* Container for the entire page */
+/* Base container for the page */
 .main-page-container {
-    text-align: center; /* Center-align the content */
-    padding-top: 50px; /* Add padding to the top */
-    max-width: 1400px; /* Increase the width */
-    margin: 0 auto; /* Center horizontally */
+    text-align: center;
+    padding-top: 50px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Arial', sans-serif; /* Consider using a web-safe font for consistency */
 }
 
-/* Style for the header */
+/* Header style */
 .main-page-container h1 {
     font-size: 2.5em;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     color: #333;
+}
+
+/* Topic section */
+.debate-topic {
+    border: none; /* Remove the border */
+    padding: 20px;
+    max-width: 1160px;
+    width: 100%;
+    background-color: #f0f0f0; /* Light background to highlight topic */
+    font-size: 1.8em; /* Larger font for topic */
+    font-weight: bold;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+}
+
+.warning-notice {
+    display: inline-block;      /* Shrink the box to fit the content */
+    margin: 20px auto 0 auto;   /* Center the box horizontally */
+    padding: 15px;    /* Add padding inside the warning box */
+    background-color: #f5eda6; /* Bright yellow background */
+    border: 1px solid #fbc02d; /* Slightly darker yellow border */
+    border-radius: 4px;
+    color: #333;      /* Dark text color for readability */
+    font-weight: bold;
+    text-align: center;
+    font-size: 0.8em;
 }

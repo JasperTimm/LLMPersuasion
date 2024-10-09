@@ -1,14 +1,21 @@
 from flask import request, jsonify, redirect, url_for
+import os
 import uuid
 import random
 import string
 import json
 from database import db
-from models import User, Debate, Topic, UserInfo, all_debate_types
-from llm_handler import get_llm_response
+from models import User, Debate, Topic, UserInfo, all_debate_types, CopyPasteEvent, DebateLog, DebateResult
+from llm_handler import get_llm_response, responses_look_sensible, generate_ratings_and_feedback
+from participant_service import send_submission_info
 from topics import original_topics
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# A constant for the minimum time taken to complete a debate before its considered suspicious
+MIN_TIME_SPENT = 300
+MAX_PASTE_LENGTH = 100
+MAX_INACTIVITY_TIME = 300
 
 def init_routes(app):
     @app.route('/create_new_user', methods=['POST'])
@@ -26,7 +33,15 @@ def init_routes(app):
         password = generate_password()
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(username=username, password=hashed_password, admin=False)
+
+        # If there's a request body, use the provided participant ID and service
+        if request.json:
+            participant_id = request.json.get('participantId')
+            participant_service = request.json.get('service')
+            new_user = User(username=username, password=hashed_password, admin=False, participant_id=participant_id, participant_service=participant_service)
+        else:
+            new_user = User(username=username, password=hashed_password, admin=False)
+
         db.session.add(new_user)
         db.session.commit()
 
@@ -72,7 +87,8 @@ def init_routes(app):
                 'username': user.username,
                 'admin': user.admin,
                 'finished': user.finished,
-                'concluded': user.concluded
+                'concluded': user.concluded,
+                'volunteer': user.participant_id is None
             }
         }), 200
 
@@ -122,6 +138,25 @@ def init_routes(app):
         db.session.commit()
 
         return jsonify({'message': 'User info updated successfully'}), 200
+
+    @app.route('/check_quiz_completion', methods=['GET'])
+    @login_required
+    def check_quiz_completion():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        return jsonify({'quiz_completed': user.quiz_completed}), 200
+
+    @app.route('/update_quiz_completion', methods=['POST'])
+    @login_required
+    def update_quiz_completion():
+        user = User.query.get(current_user.id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        data = request.json
+        user.quiz_completed = data.get('quiz_completed', False)
+        db.session.commit()
+        return jsonify({'message': 'Quiz completion status updated successfully'}), 200
 
     @app.route('/start_debate_admin', methods=['POST'])
     @login_required
@@ -200,6 +235,14 @@ def init_routes(app):
             llm_debate_type=llm_debate_type
         )
         db.session.add(new_debate)
+
+        # Log the debate start
+        debate_log = DebateLog(
+            debate_id=debate_id,
+            action='start'
+        )
+        db.session.add(debate_log)
+
         db.session.commit()
 
         response = {
@@ -208,7 +251,6 @@ def init_routes(app):
             'argument': llm_debate_type == 'argument'
         }
 
-        print(f"Started debate with ID: {debate_id}, topic: {chosen_topic.description}, and user ID: {current_user.id}")
         return jsonify(response)
 
     @app.route('/initial_position', methods=['POST'])
@@ -235,6 +277,13 @@ def init_routes(app):
         debate.ai_side = ai_side
         debate.initial_opinion = initial_opinion
         debate.initial_likert_score = initial_likert_score
+
+        # Log the initial position
+        debate_log = DebateLog(
+            debate_id=debate_id,
+            action='initial_position'
+        )
+        db.session.add(debate_log)
 
         db.session.commit()
         
@@ -288,11 +337,7 @@ def init_routes(app):
         
         debate = Debate.query.get(debate_id)
         if not debate:
-            print(f"Invalid debate ID: {debate_id}")
             return jsonify({'error': 'Invalid debate ID'}), 400
-        
-        print(f"Updating debate with ID: {debate_id}")
-        print(f"User message: {user_message}")
         
         topic = Topic.query.get(debate.topic_id)
         if not topic:
@@ -320,7 +365,6 @@ def init_routes(app):
             llm_responses[debate.state] = []
         llm_responses[debate.state].append(llm_response)
         debate.llm_responses_dict = llm_responses
-        print(f"Updated LLM responses: {debate.llm_responses_dict}")
 
         # Update user responses
         user_responses = debate.user_responses_dict
@@ -328,14 +372,19 @@ def init_routes(app):
             user_responses[debate.state] = []
         user_responses[debate.state].append(user_message)
         debate.user_responses_dict = user_responses
-        print(f"Updated user responses: {debate.user_responses_dict}")
         
         # Update chat history
         if update_chat_history_dict:
             debate.chat_history_dict = update_chat_history_dict
-            print(f"Updated chat history: {debate.chat_history_dict}")
             current_phase_chat_history = update_chat_history_dict.get(debate.state, {})
-            
+
+        # Log the debate state
+        debate_log = DebateLog(
+            debate_id=debate_id,
+            action=debate.state
+        )
+        db.session.add(debate_log)
+
         # Update debate state (simple state machine for demo purposes)
         if debate.state == 'intro':
             debate.state = 'rebuttal'
@@ -369,6 +418,7 @@ def init_routes(app):
         debate_id = data.get('debate_id')
         final_opinion = data.get('final_opinion')
         final_likert_score = data.get('final_likert_score')
+        inactive_time = data.get('inactive_time')
 
         debate = Debate.query.get(debate_id)
         if not debate:
@@ -376,11 +426,23 @@ def init_routes(app):
 
         debate.final_opinion = final_opinion
         debate.final_likert_score = final_likert_score
+        debate.inactive_time = inactive_time
 
         if not user.admin:
             remaining_debate_types = get_remaining_debate_types(current_user.id)
             if not remaining_debate_types:
                 user.finished = True
+        
+        # Arguments need to be transitioned to finished state
+        if debate.llm_debate_type == 'argument':
+            debate.state = 'finished'
+
+        # Log the final position
+        debate_log = DebateLog(
+            debate_id=debate_id,
+            action='final_position'
+        )
+        db.session.add(debate_log)
 
         db.session.commit()
 
@@ -416,4 +478,209 @@ def init_routes(app):
         user.concluded = True
         db.session.commit()
         
-        return jsonify({'message': 'User marked as concluded'}), 200      
+        return jsonify({'message': 'User marked as concluded'}), 200
+    
+    @app.route('/log_event', methods=['POST'])
+    @login_required
+    def log_event():
+        data = request.json
+        event = CopyPasteEvent(
+            type=data.get('type'),
+            data=data.get('data'),
+            current_page=data.get('currentPage'),
+            user_id=current_user.id,
+            debate_id=data.get('debateId')
+        )
+        db.session.add(event)
+        db.session.commit()
+        return '', 201
+
+    @app.route('/get_results', methods=['GET'])
+    @login_required
+    def get_results():
+        user_id = current_user.id
+
+        # Check the user has concluded
+        user = User.query.get(user_id)
+        if not user.concluded:
+            return jsonify({'error': 'User must be concluded before viewing results'}), 400
+        
+        # Get results for all debates for this user
+        results = DebateResult.query.join(Debate).filter(Debate.user_id == user_id).all()
+
+        # Add topic description to results
+        for result in results:
+            topic = Topic.query.get(Debate.query.get(result.debate_id).topic_id)
+            result.topic_description = topic.description
+
+        # Add user and AI sides to results
+        for result in results:
+            debate = Debate.query.get(result.debate_id)
+            result.user_side = debate.user_side
+            result.ai_side = debate.ai_side
+            result.user_responses = debate.user_responses_dict
+            result.ai_responses = debate.llm_responses_dict
+            result.llm_debate_type = debate.llm_debate_type
+            if debate.llm_debate_type == 'mixed':
+                result.chat_history = debate.chat_history_dict
+
+        results_list = [{
+            'debateId': result.debate_id,
+            'userRating': result.user_rating,
+            'aiRating': result.ai_rating,
+            'timeSpent': result.time_spent,
+            'feedback': result.feedback_dict,
+            'requiresReview': result.requires_review,
+            'topicDescription': result.topic_description,
+            'userSide': result.user_side,
+            'aiSide': result.ai_side,
+            'llmDebateType': result.llm_debate_type,
+            'userResponses': result.user_responses,
+            'aiResponses': result.ai_responses,
+            'chatHistory': result.chat_history if hasattr(result, 'chat_history') else None,
+        } for result in results]
+
+        response_dict = {
+            'results': results_list,
+        }
+
+        if user.participant_id:
+            response_dict['participant'] = {
+                'participantId': user.participant_id,
+                'participantService': user.participant_service,
+                'participantStatus': user.participant_status_dict
+            }
+
+        return jsonify(response_dict), 200
+    
+    @app.route('/generate_results', methods=['POST'])
+    @login_required
+    def generate_results():
+        user_id = current_user.id
+
+        # Check the user has concluded
+        user = User.query.get(user_id)
+        if not user.concluded:
+            return jsonify({'error': 'User must be concluded before generating results'}), 400
+
+        # Check if we've already generated results for this user
+        results = DebateResult.query.join(Debate).filter(Debate.user_id == user_id).all()
+        if results:
+            return jsonify({'error': 'Results already generated'}), 400
+        
+        # Otherwise generate results for all debates for this user
+        debates = Debate.query.filter_by(user_id=user_id).all()
+        reviews_required = False
+        for debate in debates:
+            debate_id = debate.id
+
+            # Check if it's simply not finished first, continue if so
+            if debate.state != 'finished':
+                result = DebateResult(
+                    debate_id=debate_id,
+                    user_rating='',
+                    ai_rating='',
+                    time_spent=0,
+                    feedback_dict={},
+                    requires_review=True,
+                    review_reasons_list=['UNFINISHED']
+                )
+                db.session.add(result)
+                continue
+
+            # Check for suspicious activity
+            start_time = DebateLog.query.filter_by(debate_id=debate_id, action='start').first().timestamp
+            end_time = DebateLog.query.filter_by(debate_id=debate_id, action='final_position').first().timestamp
+            time_spent = (end_time - start_time).total_seconds()
+
+            # If it's an argument, don't bother with the rest
+            if debate.llm_debate_type == 'argument':
+                result = DebateResult(
+                    debate_id=debate_id,
+                    user_rating='',
+                    ai_rating='',
+                    time_spent=time_spent,
+                    feedback_dict={},
+                    requires_review=False
+                )
+                db.session.add(result)
+                continue
+
+            copy_paste_events = CopyPasteEvent.query.filter_by(debate_id=debate_id).all()
+            paste_events = [event for event in copy_paste_events if event.type == 'paste']
+            copy_events = [event for event in copy_paste_events if event.type == 'copy']
+
+            # Run through list of copy events and if the data matches a paste event, remove it from paste_events
+            for copy_event in copy_events:
+                for paste_event in paste_events:
+                    if copy_event.data == paste_event.data:
+                        paste_events.remove(paste_event)
+                        break
+                    # Ignore pastes that are shorter than MAX_PASTE_LENGTH
+                    if len(paste_event.data) < MAX_PASTE_LENGTH:
+                        paste_events.remove(paste_event)
+                        break
+
+            review_reasons = []
+
+            # Check for suspicious activity
+            if time_spent < MIN_TIME_SPENT:
+                review_reasons.append('SUSPICIOUS_TIME')
+            if len(paste_events):
+                review_reasons.append('PASTE_EVENTS')
+            if debate.inactive_time > MAX_INACTIVITY_TIME:
+                review_reasons.append('INACTIVE_TIME')
+            
+            topic = Topic.query.get(debate.topic_id)
+            extended_reasons = responses_look_sensible(debate, topic.description)
+            if extended_reasons:
+                review_reasons.append('INSENSIBLE_RESPONSES')
+
+            if review_reasons:
+                result = DebateResult(
+                    debate_id=debate_id,
+                    user_rating='',
+                    ai_rating='',
+                    time_spent=time_spent,
+                    feedback_dict={},
+                    requires_review=True,
+                    review_reasons_list=review_reasons,
+                    extended_reasons_list=extended_reasons
+                )
+                db.session.add(result)
+                reviews_required = True
+                continue
+            
+            # Otherwise, continue to generate results
+            ratings = generate_ratings_and_feedback(debate, topic.description)
+
+            result = DebateResult(
+                debate_id=debate_id,
+                user_rating=ratings['user_rating'],
+                ai_rating=ratings['opponent_rating'],
+                time_spent=time_spent,
+                feedback_dict=ratings['user_feedback'],
+                requires_review=False
+            )
+            db.session.add(result)
+
+
+        if user.participant_id:
+            # We can approve in the API automatically using 'send_submission_info',
+            # but for now we're just leaving the submission
+            # in 'to review' and giving a completion code which indicates
+            # whether we think we should approve or not
+            if reviews_required:
+                user.participant_status_dict = {
+                    'status': 'NEEDS_REVIEW',
+                    'completion_code': os.getenv('PROLIFIC_REVIEW_CODE')
+                }
+            else:
+                user.participant_status_dict = {
+                    'status': 'SHOULD_APPROVE',
+                    'completion_code': os.getenv('PROLIFIC_APPROVAL_CODE')
+                }
+
+        db.session.commit()
+
+        return 'Results generated', 200            

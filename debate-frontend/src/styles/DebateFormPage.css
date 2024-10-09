@@ -1,54 +1,84 @@
+/* History container */
 .history-container {
     display: flex;
-    gap: 20px;
-    width: 100%; /* Use full width */
-    max-width: 1200px; /* Set a maximum width */
-    margin: 0 auto; /* Center horizontally */
+    gap: 20px; /* Add spacing between chat and debate history */
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .debate-history, .chat-history {
     flex: 1;
+    max-height: 400px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0; /* Softer border */
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
     overflow-y: auto;
-    max-height: 400px; /* Adjust as needed */
-    border: 2px solid #ccc; /* Add border */
-    background-color: #f9f9f9; /* Change background color */
-    padding: 10px; /* Add padding */
-    text-align: left; /* Align text to the left */
+}
+
+/* Input container */
+.input-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #fafafa;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Button */
+button {
+    /* padding: 10px 20px; */
+    background-color: #007bff; /* Accent color */
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
 }
 
 .debate-history.with-chat {
     flex: 2;
 }
 
+/* Debate Info Styling */
 .debate-info {
+    max-width: 1200px; /* Decrease the width slightly */
+    /* margin: 10px auto; */
+    padding: 15px; /* Reduce padding */
+    background-color: #f9f9f9; /* Keep the background subtle */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: left;
-    margin-bottom: 20px;
-    max-width: 1200px; /* Set a maximum width */
-    margin: 0 auto; /* Center horizontally */
+    font-size: 1.1em; /* Slightly smaller font size */
 }
 
-.debate-topic, .debate-side {
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-
-.debate-topic-label {
+/* Debate Side Text */
+.debate-side {
+    font-size: 1.4em; /* Slightly smaller */
     font-weight: bold;
+    color: #333; /* More neutral color, not too bright */
+    margin-bottom: 5px; /* Reduce margin */
 }
 
-.debate-history-container, .chat-history-container {
-    max-height: 400px; /* Adjust as needed */
-    overflow-y: auto;
-}
-
-.input-container {
-    max-width: 1200px; /* Set a maximum width */
-    margin: 20px auto; /* Center horizontally and add margin */
-    padding: 10px; /* Add padding */
-    border: 2px solid #ccc; /* Add border */
-    background-color: #f9f9f9; /* Change background color */
-}
-
+/* Initial Opinion Text */
 .debate-initial-opinion {
+    font-size: 1em; /* Smaller */
     font-weight: normal;
+    color: #555;
+    /* margin-top: 5px; */
 }
+
+.debate-side, .debate-initial-opinion {
+    flex: 1;
+    margin-right: 20px; /* Space between the two sections */
+}
+
+.debate-wrapper {
+    width: 100%;
+}
+
+.debate-content-wrapper {
+    display: flex;
+  }

@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/StartDebatePage.css';
 
-const StartDebatePage = ({ startDebate }) => {
+const StartDebatePage = ({ startDebate, errorStartDebate }) => {
     return (
         <div className="container">
             <h2 className="debate-title">How the Debate Process Works</h2>
@@ -17,8 +17,13 @@ const StartDebatePage = ({ startDebate }) => {
                 </li>
                 <hr className="debate-step-separator" />
                 <li className="debate-step">
-                    <strong className="debate-step-title">Debate the Topic:</strong> 
-                    Engage in a structured debate with the LLM. You'll go through an Introduction phase, a Rebuttal phase, and a Conclusion phase to explore the topic in depth.
+                    <p>
+                        <strong className="debate-step-title">Debate the Topic:</strong> 
+                        Engage in a structured debate with the LLM. You'll go through an Introduction phase, a Rebuttal phase, and a Conclusion phase to explore the topic in depth.
+                    </p>
+                    <p>
+                        In some cases, instead of a debate you may simply be presented with an argument to consider.
+                    </p>
                 </li>
                 <hr className="debate-step-separator" />
                 <li className="debate-step">
@@ -32,6 +37,11 @@ const StartDebatePage = ({ startDebate }) => {
                 </li>
             </ul>
             <button className="debate-start-button" onClick={startDebate}>Start Debate</button>
+            {errorStartDebate && (
+                <div className="error-message">
+                    {errorStartDebate}
+                </div>
+            )}
         </div>
     );    
 };
