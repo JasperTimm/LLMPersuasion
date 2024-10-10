@@ -136,8 +136,8 @@ def generate_system_prompt(topic, initial_opinion, initial_likert_scale, user_si
         additional_instructions = stats_instructions
     elif llm_debate_type == "personalized":
         additional_instructions = personalized_instructions
-    elif llm_debate_type == "simple":
-        additional_instructions = persuasion_findings
+    else:
+        additional_instructions = ""
 
     return f"""
     You are an AI participating in a debate with a user on the topic: "{topic}".
