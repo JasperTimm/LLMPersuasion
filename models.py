@@ -4,6 +4,7 @@ from flask_login import UserMixin
 
 all_debate_types = [
     'argument',
+    'argumentllm',
     'simple',
     'stats',
     'personalized',
