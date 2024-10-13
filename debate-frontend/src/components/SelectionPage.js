@@ -30,6 +30,7 @@ const SelectionPage = ({ setDebate }) => {
                 Select LLM Debate Type:
                 <select value={llmDebateType} onChange={(e) => setLlmDebateType(e.target.value)}>
                     <option value="argument">Argument</option>
+                    <option value="argumentllm">Argument LLM</option>
                     <option value="simple">Simple</option>
                     <option value="stats">Statistics</option>
                     <option value="personalized">Personalized</option>

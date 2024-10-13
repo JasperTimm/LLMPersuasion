@@ -248,7 +248,7 @@ def init_routes(app):
         response = {
             'debate_id': debate_id,
             'topic': chosen_topic.description,
-            'argument': llm_debate_type == 'argument'
+            'argument': llm_debate_type.startswith('argument')
         }
 
         return jsonify(response)
@@ -304,11 +304,11 @@ def init_routes(app):
         if not debate:
             return jsonify({'error': 'Invalid debate ID'}), 400
 
-        if debate.llm_debate_type != 'argument':
+        if not debate.llm_debate_type.startswith('argument'):
             return jsonify({'error': 'Debate type is not argument'}), 400
 
         try:
-            with open('arguments.json', 'r') as f:
+            with open(f"{debate.llm_debate_type}.json", 'r') as f:
                 arguments = json.load(f)
         except FileNotFoundError:
             return jsonify({'error': 'Arguments file not found'}), 500
@@ -434,7 +434,7 @@ def init_routes(app):
                 user.finished = True
         
         # Arguments need to be transitioned to finished state
-        if debate.llm_debate_type == 'argument':
+        if debate.llm_debate_type.startswith('argument'):
             debate.state = 'finished'
 
         # Log the final position
@@ -594,7 +594,7 @@ def init_routes(app):
             time_spent = (end_time - start_time).total_seconds()
 
             # If it's an argument, don't bother with the rest
-            if debate.llm_debate_type == 'argument':
+            if debate.llm_debate_type.startswith('argument'):
                 result = DebateResult(
                     debate_id=debate_id,
                     user_rating='',

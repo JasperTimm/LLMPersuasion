@@ -86,7 +86,7 @@ const ResultsPage = () => {
                         </div>
                         {result.requiresReview ? (
                             <p>This debate requires manual reviewing.</p>
-                        ) : result.llmDebateType === 'argument' ? (
+                        ) : result.llmDebateType.startsWith('argument') ? (
                             <p>This topic involved simply reading a passage. There are no results to display.</p>
                         ) : (
                             <>
