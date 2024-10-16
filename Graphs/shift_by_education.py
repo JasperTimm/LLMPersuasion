@@ -14,12 +14,13 @@ query = """
     SELECT 
         debate.llm_debate_type AS debate_type,
         user_info.education_level AS education_level,
-        ABS(debate.initial_likert_score - debate.final_likert_score) AS rating_difference
+        debate.rating_difference AS rating_difference
     FROM debate
     JOIN user_info ON debate.user_id = user_info.user_id
     WHERE debate.initial_likert_score IS NOT NULL 
     AND debate.final_likert_score IS NOT NULL 
     AND user_info.education_level IS NOT NULL
+    AND debate.state = 'finished'
 """
 df = pd.read_sql_query(query, conn)
 

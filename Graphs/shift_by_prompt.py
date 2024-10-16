@@ -10,10 +10,19 @@ conn = sqlite3.connect(db_path)
 # Step 2: Load data from the debate table
 query = """
     SELECT 
-        llm_debate_type, 
-        ABS(initial_likert_score - final_likert_score) AS difference_in_ratings
+        llm_debate_type,        CASE
+            -- If the user is "For" and the final score is higher or equal, move towards the user's side (make negative)
+            WHEN debate.user_side = 'FOR' AND debate.final_likert_score > debate.initial_likert_score THEN
+                debate.initial_likert_score - debate.final_likert_score
+            -- If the user is "Against" and the final score is lower or equal, move towards the user's side (make negative)
+            WHEN debate.user_side = 'AGAINST' AND debate.final_likert_score < debate.initial_likert_score THEN
+                debate.final_likert_score - debate.initial_likert_score
+            ELSE
+                ABS(debate.final_likert_score - debate.initial_likert_score)  -- Retain the sign for differences
+        END AS difference_in_ratings
     FROM debate
     WHERE initial_likert_score IS NOT NULL AND final_likert_score IS NOT NULL
+    AND debate.state = 'finished'
 """
 df = pd.read_sql_query(query, conn)
 
@@ -36,10 +45,13 @@ for debate_type in debate_types:
     
     fig, ax = plt.subplots()
     ax.bar(rating_difference_counts.index, rating_difference_counts.values, color='skyblue')
-    ax.set_xlabel('Difference in Rating (0 to 6)')
+    
+    ax.set_xlabel('Difference in Rating')
     ax.set_ylabel('Number of Debates')
     ax.set_title(f'Distribution of Rating Differences for {debate_type} Debates')
-    ax.set_xticks(range(7))  # Set x-axis ticks for 0 to 6
+    
+    # Set x-axis ticks based on the range of rating differences (negative to positive)
+    ax.set_xticks(rating_difference_counts.index)  
     
     # Display the chart using Streamlit
     st.pyplot(fig)

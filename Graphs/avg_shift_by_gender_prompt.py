@@ -70,15 +70,15 @@ query = """
     SELECT 
         debate.llm_debate_type AS debate_type, 
         user_info.gender AS gender, 
-                      CASE
+                              CASE
             -- If the user is "For" and the final score is higher or equal, move towards the user's side (make negative)
             WHEN debate.user_side = 'FOR' AND debate.final_likert_score > debate.initial_likert_score THEN
-                debate.final_likert_score - debate.initial_likert_score
+                debate.initial_likert_score - debate.final_likert_score
             -- If the user is "Against" and the final score is lower or equal, move towards the user's side (make negative)
             WHEN debate.user_side = 'AGAINST' AND debate.final_likert_score < debate.initial_likert_score THEN
-                debate.initial_likert_score - debate.final_likert_score
+                debate.final_likert_score - debate.initial_likert_score
             ELSE
-                ABS(debate.final_likert_score - debate.initial_likert_score)
+                ABS(debate.final_likert_score - debate.initial_likert_score)  -- Retain the sign for differences
         END AS rating_difference
     FROM debate
     JOIN user_info ON debate.user_id = user_info.user_id

@@ -3,28 +3,25 @@ import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Function to fetch debate data
+# Function to fetch debate data with pre-calculated rating differences
 def get_debate_data(db_path):
     conn = sqlite3.connect(db_path)
     query = """
-        SELECT initial_likert_score, final_likert_score 
+        SELECT rating_difference 
         FROM debate 
-        WHERE initial_likert_score IS NOT NULL AND final_likert_score IS NOT NULL
+        WHERE rating_difference IS NOT NULL
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
 
-# Function to calculate the absolute differences and group by difference
+# Function to group by rating difference and count occurrences
 def calculate_differences(df):
-    # Calculate the absolute difference between initial and final ratings
-    df['difference'] = (df['initial_likert_score'] - df['final_likert_score']).abs()
-    
     # Group by difference and count occurrences
-    difference_counts = df['difference'].value_counts().sort_index()
-    
-    # Fill in missing difference values (0 to 6) with 0 counts
-    all_differences = pd.Series(0, index=range(7))
+    difference_counts = df['rating_difference'].value_counts().sort_index()
+
+    # Assuming the range of possible rating differences (-6 to 6), fill in missing values with 0 counts
+    all_differences = pd.Series(0, index=range(-6, 7))  # Includes negative values
     difference_counts = all_differences.add(difference_counts, fill_value=0).astype(int)
     
     return difference_counts
@@ -34,10 +31,10 @@ def plot_difference_chart(difference_counts):
     fig, ax = plt.subplots()
     ax.bar(difference_counts.index, difference_counts.values, color='skyblue')
     
-    ax.set_xlabel("Absolute Difference in Ratings")
+    ax.set_xlabel("Rating Difference (Negative to Positive)")
     ax.set_ylabel("Number of Debates")
-    ax.set_title("Difference in Initial and Final Ratings by Number of People")
-    
+    ax.set_title("Distribution of Rating Differences (Initial vs. Final)")
+
     # Display the plot
     st.pyplot(fig)
 

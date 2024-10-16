@@ -48,8 +48,16 @@ conn = sqlite3.connect(db_path)
 # Step 2: Load data into a DataFrame
 query = """
     SELECT 
-        llm_debate_type, 
-        ABS(initial_likert_score - final_likert_score) AS difference_in_ratings
+        llm_debate_type,        CASE
+            -- If the user is "For" and the final score is higher or equal, move towards the user's side (make negative)
+            WHEN debate.user_side = 'FOR' AND debate.final_likert_score > debate.initial_likert_score THEN
+                debate.initial_likert_score - debate.final_likert_score
+            -- If the user is "Against" and the final score is lower or equal, move towards the user's side (make negative)
+            WHEN debate.user_side = 'AGAINST' AND debate.final_likert_score < debate.initial_likert_score THEN
+                debate.final_likert_score - debate.initial_likert_score
+            ELSE
+                ABS(debate.final_likert_score - debate.initial_likert_score)  -- Retain the sign for differences
+        END AS rating_difference
     FROM debate
     WHERE initial_likert_score IS NOT NULL 
         AND final_likert_score IS NOT NULL
