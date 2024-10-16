@@ -139,7 +139,6 @@
 
 
 
-
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -150,11 +149,11 @@ import seaborn as sns
 db_path = 'debate_website_prod_latest.sqlite'
 conn = sqlite3.connect(db_path)
 
-# Query to get the rating differences by debate type
+# Query to get the rating differences by debate type (without absolute values)
 query = """
     SELECT 
         debate.llm_debate_type AS debate_type, 
-        ABS(debate.initial_likert_score - debate.final_likert_score) AS rating_difference
+        debate.rating_difference AS rating_difference
     FROM debate
     WHERE debate.initial_likert_score IS NOT NULL 
     AND debate.final_likert_score IS NOT NULL
@@ -165,7 +164,7 @@ df = pd.read_sql_query(query, conn)
 # Streamlit title
 st.title("Rating Difference Distribution by Debate Type")
 
-# KDE Plot for Rating Difference using absolute difference
+# KDE Plot for Rating Difference (including negative differences)
 plt.figure(figsize=(10, 6))
 
 # Plotting for 'argument' (Human-written)
@@ -190,7 +189,7 @@ sns.kdeplot(
 
 # Add labels and title
 plt.title("Rating Difference Distribution by Debate Type (KDE)")
-plt.xlabel("Absolute Rating Difference")
+plt.xlabel("Rating Difference")
 plt.ylabel("Density")
 
 # Add legend
@@ -208,7 +207,7 @@ sns.barplot(x='rating_difference', y='count', hue='debate_type', data=df_count, 
 
 # Add labels and title
 plt.title("Number of People by Rating Difference and Debate Type (Bar Plot)")
-plt.xlabel("Absolute Rating Difference")
+plt.xlabel("Rating Difference")
 plt.ylabel("Number of People")
 
 # Display the bar plot in Streamlit

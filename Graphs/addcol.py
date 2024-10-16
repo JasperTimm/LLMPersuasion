@@ -40,31 +40,31 @@
 # conn.close()
 
 # print("New table 'debate_summary_with_type' created and populated successfully.")
-import sqlite3
+# import sqlite3
 
-# Step 1: Connect to the SQLite database
-db_path = 'debate_website_prod_latest.sqlite'
-conn = sqlite3.connect(db_path)
-cursor = conn.cursor()
+# # Step 1: Connect to the SQLite database
+# db_path = 'debate_website_prod_latest.sqlite'
+# conn = sqlite3.connect(db_path)
+# cursor = conn.cursor()
 
-# Step 2: Create the updated debate_summary_with_type_and_gender table with an added gender column
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS debate_summary_with_type_and_gender AS
-    SELECT 
-        debate.id AS debate_id,
-        debate.user_side,
-        debate.ai_side,
-        debate.initial_likert_score AS initial_rating,
-        debate.final_likert_score AS final_rating,
-        ABS(debate.initial_likert_score - debate.final_likert_score) AS rating_difference,
-        debate.llm_debate_type AS debate_type,
-        user_info.gender AS gender
-    FROM debate
-    JOIN user_info ON debate.user_id = user_info.user_id
-""")
+# # Step 2: Create the updated debate_summary_with_type_and_gender table with an added gender column
+# cursor.execute("""
+#     CREATE TABLE IF NOT EXISTS debate_summary_with_type_and_gender AS
+#     SELECT 
+#         debate.id AS debate_id,
+#         debate.user_side,
+#         debate.ai_side,
+#         debate.initial_likert_score AS initial_rating,
+#         debate.final_likert_score AS final_rating,
+#         ABS(debate.initial_likert_score - debate.final_likert_score) AS rating_difference,
+#         debate.llm_debate_type AS debate_type,
+#         user_info.gender AS gender
+#     FROM debate
+#     JOIN user_info ON debate.user_id = user_info.user_id
+# """)
 
-# Step 3: Commit the transaction and close the connection
-conn.commit()
-conn.close()
+# # Step 3: Commit the transaction and close the connection
+# conn.commit()
+# conn.close()
 
-print("Table 'debate_summary_with_type_and_gender' created successfully with gender column.")
+# print("Table 'debate_summary_with_type_and_gender' created successfully with gender column.")
