@@ -66,13 +66,13 @@ query = """
 df = pd.read_sql_query(query, conn)
 
 # Step 3: Group by debate type and calculate average difference in ratings
-avg_diff_by_debate_type = df.groupby('llm_debate_type')['difference_in_ratings'].mean().reset_index()
+avg_diff_by_debate_type = df.groupby('llm_debate_type')['rating_difference'].mean().reset_index()
 
 # Step 4: Create a bar chart using Streamlit and Matplotlib
 st.title("Average Difference in Ratings by Debate Type")
 
 fig, ax = plt.subplots()
-ax.bar(avg_diff_by_debate_type['llm_debate_type'], avg_diff_by_debate_type['difference_in_ratings'], color='skyblue')
+ax.bar(avg_diff_by_debate_type['llm_debate_type'], avg_diff_by_debate_type['rating_difference'], color='skyblue')
 ax.set_xlabel('Debate Type')
 ax.set_ylabel('Average Difference in Ratings')
 ax.set_title('Average Difference in Ratings by Debate Type')

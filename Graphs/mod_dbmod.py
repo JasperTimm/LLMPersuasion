@@ -255,3 +255,61 @@ conn.commit()
 conn.close()
 
 print("gender column added and populated successfully.")
+
+#=============================================================================================
+import sqlite3
+import pandas as pd
+
+# Connect to the SQLite database
+db_path = 'debate_website_prod_latest.sqlite'
+conn = sqlite3.connect(db_path)
+
+# Step 1: Prepare Data
+# Get start and end timestamps from debate_log
+query_logs = """
+    SELECT 
+        debate_id, 
+        MIN(timestamp) AS start_time, 
+        MAX(timestamp) AS end_time 
+    FROM debate_log
+    GROUP BY debate_id
+"""
+logs_df = pd.read_sql_query(query_logs, conn)
+
+# Get debate details for rating difference and debate type
+query_debate_details = """
+    SELECT 
+        debate.id AS debate_id, 
+        debate.llm_debate_type, 
+        debate.rating_difference
+    FROM debate
+"""
+debate_df = pd.read_sql_query(query_debate_details, conn)
+
+# Merge DataFrames to calculate durations
+df = pd.merge(logs_df, debate_df, on='debate_id')
+df['duration'] = (pd.to_datetime(df['end_time']) - pd.to_datetime(df['start_time'])).dt.total_seconds() / 60
+
+# Define the five time intervals based on percentiles
+percentiles = df['duration'].quantile([0.2, 0.4, 0.6, 0.8]).tolist()
+intervals = [0] + percentiles + [df['duration'].max()]
+df['duration_category'] = pd.cut(df['duration'], bins=intervals, labels=["Very Short", "Short", "Medium", "Long", "Very Long"])
+
+# Step 2: Create a new table in the SQLite database
+conn.execute("DROP TABLE IF EXISTS debate_duration_categories")
+conn.execute("""
+    CREATE TABLE debate_duration_categories (
+        debate_id VARCHAR NOT NULL,
+        llm_debate_type VARCHAR NOT NULL,
+        rating_difference REAL,
+        duration REAL,
+        duration_category VARCHAR
+    )
+""")
+# Insert the new data
+df[['debate_id', 'llm_debate_type', 'rating_difference', 'duration', 'duration_category']].to_sql('debate_duration_categories', conn, if_exists='append', index=False)
+
+# Commit and close the connection
+conn.commit()
+conn.close()
+
